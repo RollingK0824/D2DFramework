@@ -47,8 +47,8 @@ using uint16 = unsigned short;		// 2byte 정수형
 using uint32 = unsigned int;		// 4byte 정수형
 using uint64 = unsigned long long;	// 8byte 정수형
 
-constexpr int32 GWinSizeX = 1600;
-constexpr int32 GWinSizeY = 1900;
+constexpr int32 GWinSizeX = 1920;
+constexpr int32 GWinSizeY = 1080;
 
 #include <dwrite.h>
 #include <d2d1.h>

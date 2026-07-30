@@ -52,7 +52,7 @@ bool GameApp::Initialize(HINSTANCE hInstance, int nCmdShow, DisplayMode mode)
 	int screenWidth = GetSystemMetrics(SM_CXSCREEN);
 	int screenHeight = GetSystemMetrics(SM_CYSCREEN);
 
-	DWORD windowStyle = WS_OVERLAPPEDWINDOW | WS_VISIBLE; // 기본 윈도우 스타일
+	DWORD windowStyle = WS_OVERLAPPEDWINDOW | WS_VISIBLE | WS_MAXIMIZE; // 기본 윈도우 스타일
 	int width = GWinSizeX;
 	int height = GWinSizeY;
 
