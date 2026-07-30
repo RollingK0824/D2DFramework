@@ -185,3 +185,34 @@ void GraphicManager::PostRender()
 		}
 	}
 }
+
+void GraphicManager::OnResize(UINT width, UINT height)
+{
+	if (!m_pSwapChain || width == 0 || height == 0) return;
+
+	if (m_pRenderTarget) { m_pRenderTarget->Release(); m_pRenderTarget = nullptr; }
+	if (m_pRenderTargetView) { m_pRenderTargetView->Release(); m_pRenderTargetView = nullptr; }
+
+	m_pD3DContext->OMSetRenderTargets(0, nullptr, nullptr);
+	HRESULT hr = m_pSwapChain->ResizeBuffers(0, width, height, DXGI_FORMAT_UNKNOWN, 0);
+	if (FAILED(hr)) return;
+
+	ID3D11Texture2D* pBackBuffer = nullptr;
+	hr = m_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&pBackBuffer);
+	if (FAILED(hr)) return;
+
+	m_pD3DDevice->CreateRenderTargetView(pBackBuffer, nullptr, &m_pRenderTargetView);
+
+	IDXGISurface* pDxgiSurface = nullptr;
+	pBackBuffer->QueryInterface(__uuidof(IDXGISurface), (void**)&pDxgiSurface);
+
+	D2D1_RENDER_TARGET_PROPERTIES props = D2D1::RenderTargetProperties(
+		D2D1_RENDER_TARGET_TYPE_DEFAULT,
+		D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_PREMULTIPLIED)
+	);
+
+	m_pFactory->CreateDxgiSurfaceRenderTarget(pDxgiSurface, &props, &m_pRenderTarget);
+
+	pDxgiSurface->Release();
+	pBackBuffer->Release();
+}

@@ -19,6 +19,8 @@ public:
 
 	ID2D1RenderTarget* GetRenderTarget() const { return m_pRenderTarget; }
 
+	void OnResize(UINT width, UINT height);
+
 	float GetScreenWidth() const { return m_pRenderTarget ? 
 		m_pRenderTarget->GetSize().width : 0.0f;}
 
