@@ -192,6 +192,14 @@ LRESULT CALLBACK GameApp::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		return 0;
+	case WM_SIZE:
+		if (wParam != SIZE_MINIMIZED) // 최소화 상태가 아닐 때만 실행
+		{
+			UINT width = LOWORD(lParam);
+			UINT height = HIWORD(lParam);
+			GraphicManager::GetInstance()->OnResize(width, height);
+		}
+		return 0;
 	}
 
 	return DefWindowProcW(hWnd, message, wParam, lParam);
