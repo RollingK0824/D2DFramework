@@ -11,8 +11,6 @@ public:
 	RenderComponent(GameObject* owner, TransformComponent* transform);
 	virtual ~RenderComponent()override = default;
 
-	virtual void OnDrawImGui() override;
-
 	void SetAsCircle(float radius, D2D1::ColorF color, bool isFilled = true)
 	{
 		m_RenderCommand.type = RenderType::DEBUG_CIRCLE;
@@ -43,8 +41,8 @@ public:
 	const RenderCommand& GetRenderCommand() const { return m_RenderCommand; }
 
 	std::string_view GetComponentType() const { return EngineKey::Component::Render; }
-	void Serialize(nlohmann::json& outJson)const override;
-	void Deserialize(const nlohmann::json& inJson)override;
+	void Serialize(json& outJson)const override;
+	void Deserialize(const json& inJson)override;
 
 private:
 	RenderCommand m_RenderCommand;

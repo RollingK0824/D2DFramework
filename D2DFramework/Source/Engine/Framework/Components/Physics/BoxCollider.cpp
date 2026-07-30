@@ -9,6 +9,8 @@ static ComponentRegistrar<BoxCollider> registrar(EngineKey::Component::BoxCollid
 BoxCollider::BoxCollider(GameObject* owner, TransformComponent* transform) 
 	: ColliderComponent(owner, transform)
 {
+    ExposeVariable("Half Width", &m_HalfWidth);
+    ExposeVariable("Half Height", &m_HalfHeight);
 }
 
 void BoxCollider::DrawDebug()

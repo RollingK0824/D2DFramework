@@ -10,6 +10,10 @@ static ComponentRegistrar<CameraComponent> registrar(EngineKey::Component::Camer
 
 CameraComponent::CameraComponent(GameObject* owner, TransformComponent* transform) : ScriptComponent(owner, transform)
 {
+	ExposeVariable("Zoom", &m_zoom);
+	ExposeVariable("Smooth Follow", &m_bSmoothFollow);
+	ExposeVariable("Follow Speed", &m_followSpeed);
+	ExposeVariable("Use Map Bounds", &m_bUseMapBounds);
 }
 
 CameraComponent::~CameraComponent()

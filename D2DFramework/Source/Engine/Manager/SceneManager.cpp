@@ -122,7 +122,7 @@ bool SceneManager::LoadSceneFromFile(const std::string& jsonFilePath)
     std::ifstream file(jsonFilePath);
     if (!file.is_open()) return false;
 
-    nlohmann::json sceneJson;
+    json sceneJson;
     file >> sceneJson;
     file.close();
 

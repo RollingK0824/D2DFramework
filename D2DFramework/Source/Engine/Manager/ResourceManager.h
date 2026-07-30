@@ -25,6 +25,10 @@ public:
 	bool LoadSpriteAtlas(const std::string& jsonPath, const std::wstring& textureKey);
 
 	const AnimationClip* GetAnimationClip(const std::wstring& clipKey)const;
+
+	ID3D11ShaderResourceView* GetTextureSRV(const std::wstring& key) const;
+
+	std::vector<std::string> GetLoadedTextureKeys() const;
 private:
 	ResourceManager() = default;
 	virtual ~ResourceManager() = default;
@@ -34,5 +38,7 @@ private:
 	// 이미지들일 이름(key)으로 관리하는 텍스처 풀
 	std::unordered_map<std::wstring, ID2D1Bitmap*> m_texturePool;
 	std::unordered_map<std::wstring, AnimationClip> m_MapClips;
+
+	std::unordered_map<std::wstring, ID3D11ShaderResourceView*> m_srvPool;
 
 };

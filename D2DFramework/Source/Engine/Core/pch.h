@@ -67,3 +67,5 @@ constexpr int32 GWinSizeY = 1080;
 #undef byte
 
 #include "Types.h"
+
+#define WITH_EDITOR 1

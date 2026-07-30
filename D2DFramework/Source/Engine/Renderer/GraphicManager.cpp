@@ -24,7 +24,7 @@ bool GraphicManager::Initialize()
 	sd.BufferCount = 1;
 	sd.BufferDesc.Width = width;
 	sd.BufferDesc.Height = height;
-	sd.BufferDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM; // D2D 호환을 위한 포맷
+	sd.BufferDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
 	sd.BufferDesc.RefreshRate.Numerator = 60;
 	sd.BufferDesc.RefreshRate.Denominator = 1;
 	sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
@@ -32,7 +32,7 @@ bool GraphicManager::Initialize()
 	sd.SampleDesc.Count = 1;
 	sd.Windowed = TRUE;
 
-	UINT creationFlags = D3D11_CREATE_DEVICE_BGRA_SUPPORT; // D2D와 상호 운용하기 위한 플래그
+	UINT creationFlags = D3D11_CREATE_DEVICE_BGRA_SUPPORT;
 
 	// DX11 디바이스 및 스왑체인 생성
 	hr = D3D11CreateDeviceAndSwapChain(
@@ -42,11 +42,13 @@ bool GraphicManager::Initialize()
 	);
 	if (FAILED(hr)) return false;
 
-	// DX11 렌더 타겟 뷰 생성 (DX11 화면 지우기용)
 	ID3D11Texture2D* pBackBuffer = nullptr;
-	m_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&pBackBuffer);
-	if (FAILED(hr))return false;
 
+	m_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&pBackBuffer);
+	if (FAILED(hr) || !pBackBuffer)
+	{
+		return false;
+	}
 	m_pD3DDevice->CreateRenderTargetView(pBackBuffer, nullptr, &m_pRenderTargetView);
 	if (FAILED(hr))
 	{
@@ -85,84 +87,37 @@ bool GraphicManager::Initialize()
 		reinterpret_cast<IUnknown**>(&m_pWriteFactory)
 	);
 
+#if WITH_EDITOR
+	CreateViewportBuffers(m_viewportWidth, m_viewportHeight);
+#endif
+
 	return SUCCEEDED(hr);
-}
-
-void GraphicManager::BeginDraw()
-{
-	if (m_pRenderTarget)
-	{
-		m_pRenderTarget->BeginDraw();
-		m_bIsD2DDrawing = true;
-	}
-}
-
-void GraphicManager::EndD2DDraw()
-{
-	if (!m_bIsD2DDrawing) return;
-	m_bIsD2DDrawing = false;
-
-	if (m_pRenderTarget)
-	{
-		// D2D 그리기를 완전히 종료하여 도화지 사용을 마침
-		HRESULT hr = m_pRenderTarget->EndDraw();
-
-		// 장치 손실(창 크기 변경 등) 복구
-		if (hr == D2DERR_RECREATE_TARGET)
-		{
-			Release();
-			Initialize();
-			return;
-		}
-
-		// D2D 그리기가 성공적으로 끝난 직후에, 
-		// ImGui(DX11)가 도화지 위에 에디터를 그릴 수 있도록 바인딩을 넘김
-		if (m_pD3DContext && m_pRenderTargetView)
-		{
-			HWND hWnd = GameApp::GetInstance()->GetWindowHandle();
-			RECT rc;
-			GetClientRect(hWnd, &rc);
-
-			D3D11_VIEWPORT vp = {};
-			vp.Width = static_cast<float>(rc.right - rc.left);
-			vp.Height = static_cast<float>(rc.bottom - rc.top);
-			vp.MinDepth = 0.0f;
-			vp.MaxDepth = 1.0f;
-			vp.TopLeftX = 0;
-			vp.TopLeftY = 0;
-
-			m_pD3DContext->RSSetViewports(1, &vp);
-			m_pD3DContext->OMSetRenderTargets(1, &m_pRenderTargetView, nullptr);
-		}
-	}
-}
-
-void GraphicManager::Clear(const D2D1_COLOR_F& color)
-{
-	if (m_pRenderTarget)
-	{
-		m_pRenderTarget->Clear(color);
-	}
 }
 
 void GraphicManager::Release()
 {
-	if (m_pRenderTarget) { m_pRenderTarget->Release(); m_pRenderTarget = nullptr; }
-	if (m_pRenderTargetView) { m_pRenderTargetView->Release(); m_pRenderTargetView = nullptr; }
-	if (m_pSwapChain) { m_pSwapChain->Release(); m_pSwapChain = nullptr; }
-	if (m_pD3DContext) { m_pD3DContext->Release(); m_pD3DContext = nullptr; }
-	if (m_pD3DDevice) { m_pD3DDevice->Release(); m_pD3DDevice = nullptr; }
+	if (m_pViewportRenderTarget)	{ m_pViewportRenderTarget->Release();	m_pViewportRenderTarget = nullptr; }
+	if (m_pViewportSRV)				{ m_pViewportSRV->Release();			m_pViewportSRV = nullptr; }
+	if (m_pViewportRTV)				{ m_pViewportRTV->Release();			m_pViewportRTV = nullptr; }
+	if (m_pViewportTexture)			{ m_pViewportTexture->Release();		m_pViewportTexture = nullptr; }
 
-	if (m_pWriteFactory) { m_pWriteFactory->Release(); m_pWriteFactory = nullptr; }
-	if (m_pFactory) { m_pFactory->Release(); m_pFactory = nullptr; }
+	if (m_pRenderTarget)			{ m_pRenderTarget->Release();			m_pRenderTarget = nullptr; }
+	if (m_pRenderTargetView)		{ m_pRenderTargetView->Release();		m_pRenderTargetView = nullptr; }
+	if (m_pSwapChain)				{ m_pSwapChain->Release();				m_pSwapChain = nullptr; }
+	if (m_pD3DContext)				{ m_pD3DContext->Release();				m_pD3DContext = nullptr; }
+	if (m_pD3DDevice)				{ m_pD3DDevice->Release();				m_pD3DDevice = nullptr; }
+
+	if (m_pWriteFactory)			{ m_pWriteFactory->Release();			m_pWriteFactory = nullptr; }
+	if (m_pFactory)					{ m_pFactory->Release();				m_pFactory = nullptr; }
 }
 
 void GraphicManager::PreRender()
 {
-	if (m_pRenderTarget)
+	ID2D1RenderTarget* pRT = GetRenderTarget();
+	if (pRT)
 	{
-		m_pRenderTarget->BeginDraw();
-		m_pRenderTarget->Clear(D2D1::ColorF(D2D1::ColorF::Black));
+		pRT->BeginDraw();
+		pRT->Clear(D2D1::ColorF(D2D1::ColorF::DarkGray));
 		m_bIsD2DDrawing = true;
 	}
 }
@@ -173,17 +128,112 @@ void GraphicManager::PostRender()
 
 	if (m_pSwapChain)
 	{
-		// 최종적으로 완성된 화면(D2D 게임 화면 + DX11 ImGui)을 모니터에 송출
 		m_pSwapChain->Present(1, 0);
-
-		// 다음 프레임의 PreRender에서 D2D가 다시 도화지를 쓸 수 있도록,
-		// DX11이 쥐고 있던 렌더 타겟 바인딩을 강제로 해제(nullptr)
 		if (m_pD3DContext)
 		{
 			ID3D11RenderTargetView* nullRTV = nullptr;
 			m_pD3DContext->OMSetRenderTargets(1, &nullRTV, nullptr);
 		}
 	}
+}
+
+void GraphicManager::BeginDraw()
+{
+	ID2D1RenderTarget* pRT = GetRenderTarget();
+	if (pRT)
+	{
+		pRT->BeginDraw();
+		m_bIsD2DDrawing = true;
+	}
+}
+
+void GraphicManager::EndD2DDraw()
+{
+	if (!m_bIsD2DDrawing) return;
+	m_bIsD2DDrawing = false;
+	ID2D1RenderTarget* pRT = GetRenderTarget();
+	if (pRT)
+	{
+		HRESULT hr = pRT->EndDraw();
+		if (hr == D2DERR_RECREATE_TARGET)
+		{
+			Release();
+			Initialize();
+			return;
+		}
+#if WITH_EDITOR
+		if (m_pD3DContext && m_pRenderTargetView)
+		{
+			HWND hWnd = GameApp::GetInstance()->GetWindowHandle();
+			RECT rc;
+			GetClientRect(hWnd, &rc);
+			D3D11_VIEWPORT vp = {};
+			vp.Width = static_cast<float>(rc.right - rc.left);
+			vp.Height = static_cast<float>(rc.bottom - rc.top);
+			vp.MinDepth = 0.0f;
+			vp.MaxDepth = 1.0f;
+			m_pD3DContext->RSSetViewports(1, &vp);
+			m_pD3DContext->OMSetRenderTargets(1, &m_pRenderTargetView, nullptr);
+		}
+#endif
+	}
+}
+
+void GraphicManager::Clear(const D2D1_COLOR_F& color)
+{
+	ID2D1RenderTarget* pRT = GetRenderTarget();
+	if (pRT) pRT->Clear(color);
+}
+
+void GraphicManager::CreateViewportBuffers(uint32 width, uint32 height)
+{
+	if (!m_pD3DDevice || width == 0 || height == 0) return;
+
+	if (m_pViewportRenderTarget) { m_pViewportRenderTarget->Release(); m_pViewportRenderTarget = nullptr; }
+	if (m_pViewportSRV) { m_pViewportSRV->Release(); m_pViewportSRV = nullptr; }
+	if (m_pViewportRTV) { m_pViewportRTV->Release(); m_pViewportRTV = nullptr; }
+	if (m_pViewportTexture) { m_pViewportTexture->Release(); m_pViewportTexture = nullptr; }
+
+	m_viewportWidth = width;
+	m_viewportHeight = height;
+
+	D3D11_TEXTURE2D_DESC texDesc = {};
+	texDesc.Width = width;
+	texDesc.Height = height;
+	texDesc.MipLevels = 1;
+	texDesc.ArraySize = 1;
+	texDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM; // D2D 연동 포맷
+	texDesc.SampleDesc.Count = 1;
+	texDesc.Usage = D3D11_USAGE_DEFAULT;
+	texDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+
+	if (FAILED(m_pD3DDevice->CreateTexture2D(&texDesc, nullptr, &m_pViewportTexture))) return;
+	if (FAILED(m_pD3DDevice->CreateRenderTargetView(m_pViewportTexture, nullptr, &m_pViewportRTV))) return;
+
+	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+	srvDesc.Format = texDesc.Format;
+	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	srvDesc.Texture2D.MipLevels = 1;
+
+	if (FAILED(m_pD3DDevice->CreateShaderResourceView(m_pViewportTexture, &srvDesc, &m_pViewportSRV))) return;
+
+	IDXGISurface* pDxgiSurface = nullptr;
+	if (SUCCEEDED(m_pViewportTexture->QueryInterface(__uuidof(IDXGISurface), (void**)&pDxgiSurface)) && pDxgiSurface)
+	{
+		D2D1_RENDER_TARGET_PROPERTIES props = D2D1::RenderTargetProperties(
+			D2D1_RENDER_TARGET_TYPE_DEFAULT,
+			D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_PREMULTIPLIED)
+		);
+		m_pFactory->CreateDxgiSurfaceRenderTarget(pDxgiSurface, &props, &m_pViewportRenderTarget);
+		pDxgiSurface->Release();
+	}
+}
+
+void GraphicManager::ResizeViewportBuffers(uint32 width, uint32 height)
+{
+	if (width == 0 || height == 0) return;
+	if (m_viewportWidth == width && m_viewportHeight == height) return;
+	CreateViewportBuffers(width, height);
 }
 
 void GraphicManager::OnResize(UINT width, UINT height)
@@ -199,20 +249,22 @@ void GraphicManager::OnResize(UINT width, UINT height)
 
 	ID3D11Texture2D* pBackBuffer = nullptr;
 	hr = m_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&pBackBuffer);
-	if (FAILED(hr)) return;
+	if (FAILED(hr) || !pBackBuffer) return;
 
 	m_pD3DDevice->CreateRenderTargetView(pBackBuffer, nullptr, &m_pRenderTargetView);
 
 	IDXGISurface* pDxgiSurface = nullptr;
 	pBackBuffer->QueryInterface(__uuidof(IDXGISurface), (void**)&pDxgiSurface);
 
-	D2D1_RENDER_TARGET_PROPERTIES props = D2D1::RenderTargetProperties(
-		D2D1_RENDER_TARGET_TYPE_DEFAULT,
-		D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_PREMULTIPLIED)
-	);
-
-	m_pFactory->CreateDxgiSurfaceRenderTarget(pDxgiSurface, &props, &m_pRenderTarget);
-
-	pDxgiSurface->Release();
+	if (SUCCEEDED(hr) && pDxgiSurface)
+	{
+		D2D1_RENDER_TARGET_PROPERTIES props = D2D1::RenderTargetProperties(
+			D2D1_RENDER_TARGET_TYPE_DEFAULT,
+			D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_PREMULTIPLIED)
+		);
+		m_pFactory->CreateDxgiSurfaceRenderTarget(pDxgiSurface, &props, &m_pRenderTarget);
+		pDxgiSurface->Release();
+	}
 	pBackBuffer->Release();
 }
+

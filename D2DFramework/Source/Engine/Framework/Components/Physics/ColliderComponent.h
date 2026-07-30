@@ -10,7 +10,7 @@ public:
 	virtual void OnEnable() override;
 	virtual void OnDisable() override;
 
-	virtual void Serialize(nlohmann::json& outJson)const override
+	virtual void Serialize(json& outJson)const override
 	{
 		Component::Serialize(outJson);
 		outJson[EngineKey::Property::Density.data()] = density;
@@ -20,7 +20,7 @@ public:
 		outJson[EngineKey::Property::BodyType.data()] = static_cast<int>(m_BodyType);
 	}
 
-	virtual void Deserialize(const nlohmann::json& inJson)override
+	virtual void Deserialize(const json& inJson)override
 	{
 		Component::Deserialize(inJson);
 		if (inJson.contains(EngineKey::Property::Density.data()))
@@ -47,28 +47,6 @@ public:
 		}
 
 		RebuildShape();
-	}
-
-	virtual void OnDrawImGui() override
-	{
-		bool isChanged = false;
-
-		const char* bodyTypeNames[] = { "Static", "Kinematic","Dynamic" };
-		int currentType = static_cast<int>(m_BodyType);
-		if (ImGui::Combo("Body Type", &currentType, bodyTypeNames, IM_ARRAYSIZE(bodyTypeNames)))
-		{
-			SetBodyType(static_cast<b2BodyType>(currentType));
-		}
-
-		if (ImGui::DragFloat("Density", &density, 0.1f, 0.0f, 100.0f)) isChanged = true;
-		if (ImGui::DragFloat("Friction", &friction, 0.05f, 0.0f, 1.0f)) isChanged = true;
-		if (ImGui::DragFloat("Restitution", &restitution, 0.05f, 0.0f, 1.0f)) isChanged = true;
-		if (ImGui::Checkbox("Is Sensor", &isSensor)) isChanged = true;
-
-		if (isChanged)
-		{
-			RebuildShape();
-		}
 	}
 
 	virtual void DrawDebug() {}

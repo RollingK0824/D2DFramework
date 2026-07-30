@@ -45,8 +45,10 @@ public:
 		return nullptr;
 	}
 
+	void RemoveComponent(Component* comp);
+
 	const std::vector<Component*>& GetComponents()const { return m_vComponents; }
-	void Serialize(nlohmann::json& outJson)const;
+	void Serialize(json& outJson)const;
 
 	bool IsActive() const { return m_bIsActive; }
 	void SetActive(bool active);

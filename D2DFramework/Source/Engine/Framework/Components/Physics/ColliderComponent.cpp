@@ -5,6 +5,12 @@
 ColliderComponent::ColliderComponent(GameObject* owner, TransformComponent* transform)
 	:Component(owner, transform)
 {
+	ExposeVariable("Density", &density);
+	ExposeVariable("Friction", &friction);
+	ExposeVariable("Restitution", &restitution);
+	ExposeVariable("Is Sensor", &isSensor);
+
+	ExposeVariable("Body Type (0:Static, 1:Kinematic, 2:Dynamic)", reinterpret_cast<int*>(&m_BodyType));
 }
 
 void ColliderComponent::Awake()

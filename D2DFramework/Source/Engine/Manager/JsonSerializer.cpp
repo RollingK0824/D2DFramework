@@ -9,9 +9,9 @@ bool JsonSerializer::SaveScene(Scene* pScene, const std::string& filePath)
 {
 	if (pScene == nullptr)return false;
 
-	nlohmann::json sceneJson;
+	json sceneJson;
 	sceneJson[EngineKey::Document::SceneName.data()] = pScene->GetSceneName();
-	sceneJson[EngineKey::Document::GameObjects.data()] = std::vector<nlohmann::json>();
+	sceneJson[EngineKey::Document::GameObjects.data()] = std::vector<json>();
 
 	const auto& gameObjects = pScene->GetGameObjects();
 	for (auto* obj : gameObjects)
@@ -33,7 +33,7 @@ bool JsonSerializer::SaveScene(Scene* pScene, const std::string& filePath)
 	return true;
 }
 
-bool JsonSerializer::LoadScene(Scene* pScene, nlohmann::json& sceneJson)
+bool JsonSerializer::LoadScene(Scene* pScene, json& sceneJson)
 {
 	if (pScene == nullptr) return false;
 
@@ -54,7 +54,7 @@ bool JsonSerializer::SavePrefab(GameObject* pObj, const std::string& saveDirecto
 {
 	if (pObj == nullptr) return false;
 
-	nlohmann::json prefabJson = SerializeGameObject(pObj);
+	json prefabJson = SerializeGameObject(pObj);
 
 	std::filesystem::path dirPath = saveDirectory;
 	std::filesystem::path finalPath = dirPath / (pObj->GetName() + ".prefab");
@@ -72,7 +72,7 @@ bool JsonSerializer::SavePrefab(GameObject* pObj, const std::string& saveDirecto
 	return true;
 }
 
-GameObject* JsonSerializer::InstantiateFromPrefabData(Scene* pScene, const nlohmann::json& prefabJson)
+GameObject* JsonSerializer::InstantiateFromPrefabData(Scene* pScene, const json& prefabJson)
 {
 	if (pScene == nullptr || prefabJson.empty()) return nullptr;
 
@@ -83,20 +83,20 @@ GameObject* JsonSerializer::InstantiateFromPrefabData(Scene* pScene, const nlohm
 	return cloneObj;
 }
 
-nlohmann::json JsonSerializer::SerializeGameObject(GameObject* pObj)
+json JsonSerializer::SerializeGameObject(GameObject* pObj)
 {
-	nlohmann::json objJson;
+	json objJson;
 	objJson[EngineKey::Property::Name.data()] = pObj->GetName();
 	objJson[EngineKey::Property::IsActive.data()] = pObj->IsActive();
-	objJson[EngineKey::Property::Components.data()] = std::vector<nlohmann::json>();
+	objJson[EngineKey::Property::Components.data()] = std::vector<json>();
 
-	nlohmann::json transformJson;
+	json transformJson;
 	std::string trName = pObj->transform.GetComponentType().data();
 	if (trName.empty())trName = EngineKey::Component::Trnasform.data();
 
 	transformJson[EngineKey::Property::Type.data()] = trName;
 
-	nlohmann::json transformData;
+	json transformData;
 	pObj->transform.Serialize(transformData);
 	transformJson[EngineKey::Property::Data.data()] = transformData;
 
@@ -107,10 +107,10 @@ nlohmann::json JsonSerializer::SerializeGameObject(GameObject* pObj)
 	{
 		if (comp == nullptr)continue;
 
-		nlohmann::json compJson;
+		json compJson;
 		compJson[EngineKey::Property::Type.data()] = comp->GetComponentType();
 
-		nlohmann::json compData;
+		json compData;
 		comp->Serialize(compData);
 		compJson[EngineKey::Property::Data.data()] = compData;
 
@@ -119,7 +119,7 @@ nlohmann::json JsonSerializer::SerializeGameObject(GameObject* pObj)
 	return objJson;
 }
 
-void JsonSerializer::ApplyJsonToGameObject(GameObject* pObj, const nlohmann::json& objJson)
+void JsonSerializer::ApplyJsonToGameObject(GameObject* pObj, const json& objJson)
 {
 	if (pObj == nullptr || objJson.empty()) return;
 
@@ -137,7 +137,7 @@ void JsonSerializer::ApplyJsonToGameObject(GameObject* pObj, const nlohmann::jso
 		for (const auto& compJson : objJson[EngineKey::Property::Components.data()])
 		{
 			std::string type = compJson[EngineKey::Property::Type.data()].get<std::string>();
-			nlohmann::json data = compJson[EngineKey::Property::Data.data()];
+			json data = compJson[EngineKey::Property::Data.data()];
 
 			if (type == EngineKey::Component::Trnasform.data())
 			{

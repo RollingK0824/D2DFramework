@@ -11,6 +11,7 @@
 #include "Engine/Editor/Panels/HierarchyPanel.h"
 #include "Engine/Editor/Panels/InspectorPanel.h"
 #include "Engine/Editor/Panels/ContentBrowserPanel.h"
+#include "Engine/Editor/Panels/ViewportPanel.h"
 #include "Engine/Framework/Scene.h"
 #include "Engine/Framework/Components/Core/CameraComponent.h"
 #include "Engine/Framework/Components/Core/TransformComponent.h"
@@ -33,6 +34,9 @@ bool EditorSystem::Initialize()
 
     m_pContentBrowserPanel = std::make_unique<ContentBrowserPanel>();
     if (m_pContentBrowserPanel)m_pContentBrowserPanel->Initialize();
+
+    m_pViewportPanel = std::make_unique<ViewportPanel>();
+    if (m_pViewportPanel) m_pViewportPanel->Initialize();
      
     return true;
 }
@@ -43,11 +47,13 @@ void EditorSystem::Release()
     if (m_pHierarchyPanel) m_pHierarchyPanel->Release();
     if (m_pInspectorPanel) m_pInspectorPanel->Release();
     if (m_pContentBrowserPanel) m_pContentBrowserPanel->Release();
+    if (m_pViewportPanel) m_pViewportPanel->Release();
 
     m_pMainMenuBarPanel.reset();
     m_pHierarchyPanel.reset();
     m_pInspectorPanel.reset();
     m_pContentBrowserPanel.reset();
+    m_pViewportPanel.reset();
 
     m_pSelectedObject = nullptr;
 }
