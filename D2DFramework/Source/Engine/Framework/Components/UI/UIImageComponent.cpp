@@ -3,6 +3,7 @@
 #include "Engine/Core/ComponentRegister.h"
 #include "Engine/Manager/ResourceManager.h"
 #include "Engine/Renderer/RenderSystem.h"
+#include "Engine/Renderer/RenderCommand.h"
 #include "Engine/Framework/GameObject.h"
 #include "Engine/Framework/Components/Core/TransformComponent.h"
 
@@ -18,15 +19,15 @@ UIImageComponent::UIImageComponent(GameObject* owner, TransformComponent* transf
 
 void UIImageComponent::SetTextureKey(const std::wstring& textureKey)
 {
-	m_RenderCommand.textureKey = textureKey;
-	m_RenderCommand.pTexture = ResourceManager::GetInstance()->GetTexture(textureKey);
+	m_textureKey = textureKey;
+	m_RenderCommand.bitmap.pTexture = ResourceManager::GetInstance()->GetTexture(textureKey);
 }
 
 void UIImageComponent::RenderUI()
 {
-	if (!m_bIsEnabled || !gameObject.IsActive() || !m_RenderCommand.pTexture) return;
+	if (!m_bIsEnabled || !gameObject.IsActive() || !m_RenderCommand.bitmap.pTexture) return;
 
-	D2D1_SIZE_F texSize = m_RenderCommand.pTexture->GetSize();
+	D2D1_SIZE_F texSize = m_RenderCommand.bitmap.pTexture->GetSize();
 
 	RenderCommand cmd = m_RenderCommand;
 	cmd.position = transform.GetPosition() + m_RenderCommand.position;

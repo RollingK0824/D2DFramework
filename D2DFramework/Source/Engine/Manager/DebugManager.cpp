@@ -65,7 +65,26 @@ GameObject* DebugManager::CreateDebugUIOverlay(Scene* pScene)
 {
     if (!pScene)return nullptr;
 
-    return nullptr;
+    GameObject* pDebugObj = pScene->CreateGameObject("DebugHUD_Root");
+
+    auto* pPanel = pDebugObj->AddComponent<UIPanelComponent>();
+    if (pPanel)
+    {
+        pPanel->SetSize({ 220.0f, 150.0f });
+        pPanel->SetColor(D2D1::ColorF(0.0f, 0.0f, 0.0f, 0.6f)); // 반투명 검은색
+    }
+
+    auto* pText = pDebugObj->AddComponent<UITextComponent>();
+    if (pText)
+    {
+        pText->SetFontSize(14.0f);
+        pText->SetColor(D2D1::ColorF(D2D1::ColorF::Green)); // 연두색 텍스트
+    }
+
+    pDebugObj->AddComponent<HUDPresenter>();
+    auto* pDebugHUD = pDebugObj->AddComponent<DebugHUDComponent>();
+
+    return pDebugObj;
 }
 
 void DebugManager::RegisterDebugHUD(DebugHUDComponent* pComp, GameObject* pRootObj)

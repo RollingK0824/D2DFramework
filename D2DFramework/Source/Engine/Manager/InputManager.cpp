@@ -30,7 +30,10 @@ void InputManager::Update(float dt)
 	for (int vkCode = 0; vkCode < 256; ++vkCode)
 	{
 		bool isCurrentPressed = false;
-		if (isForeground && !isImGuiUsingKeyboard)
+
+		bool isFunctionKey = (vkCode >= VK_F1 && vkCode <= VK_F12);
+
+		if (isForeground && (!isImGuiUsingKeyboard || isFunctionKey))
 		{
 			isCurrentPressed = (GetAsyncKeyState(vkCode) & 0x8000) != 0;
 		}
@@ -51,7 +54,6 @@ void InputManager::Update(float dt)
 				m_vKeyStates[vkCode] = KeyState::NONE;
 		}
 
-		// 현재 상태를 다음 프레임을 위한 이전 상태로 백업
 		m_vPrevStates[vkCode] = isCurrentPressed;
 	}
 }

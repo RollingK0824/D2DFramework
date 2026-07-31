@@ -14,7 +14,7 @@ public:
 		cmd.srcRect = D2D1::RectF(0.0f, 0.0f, width, height); // 가로, 세로 크기를 담아 보냄
 		cmd.rotation = rotation;
 		cmd.color = color;
-		cmd.isFilled = isFilled;
+		cmd.shape.isFilled = isFilled;
 		cmd.zOrder = zOrder; // 디버그 도형은 대개 최상단에 출력되도록 기본값 높게 설정
 
 		RenderSystem::GetInstance()->SubmitCommand(cmd);
@@ -34,7 +34,7 @@ public:
 		cmd.position = pos;
 		cmd.srcRect.left = radius; // srcRect.left에 반지름을 보관
 		cmd.color = color;
-		cmd.isFilled = isFilled;
+		cmd.shape.isFilled = isFilled;
 		cmd.zOrder = zOrder;
 
 		RenderSystem::GetInstance()->SubmitCommand(cmd);
@@ -59,7 +59,7 @@ public:
 	{
 		RenderCommand cmd;
 		cmd.type = RenderType::Debug_TEXT;
-		cmd.text = text;
+		cmd.text.pText = text;
 		cmd.position = pos;              // 시작점 (X1, Y1)
 		cmd.scaleX = fontSize;           // 선 두께 보관
 		cmd.color = color;

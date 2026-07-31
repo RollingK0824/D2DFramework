@@ -21,7 +21,10 @@ EditorSystem::~EditorSystem() = default;
 
 bool EditorSystem::Initialize()
 {
+
+#if WITH_EDITOR
     ActionManager::GetInstance()->BindShortcut("SaveScene", 'S', { VK_CONTROL });
+#endif
 
     m_pMainMenuBarPanel = std::make_unique<MainMenuBarPanel>();
     if (m_pMainMenuBarPanel)m_pMainMenuBarPanel->Initialize();

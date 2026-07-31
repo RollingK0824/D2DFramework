@@ -29,7 +29,7 @@ void BoxCollider::DrawDebug()
     cmd.srcRect = { 0.0f, 0.0f, m_HalfWidth * 2.0f, m_HalfHeight * 2.0f };
     cmd.pivot = { 0.5f, 0.5f };
 
-    cmd.isFilled = false; 
+    cmd.shape.isFilled = false;
     cmd.color = D2D1::ColorF(D2D1::ColorF::LimeGreen); 
     cmd.zOrder = 9999; 
 

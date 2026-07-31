@@ -4,38 +4,38 @@
 
 bool ActionManager::Initialize()
 {
-    BindAction("ToggleDebugOverlay", VK_F3);
-    BindShortcut("SaveScene", 'S', { VK_CONTROL });
     return true;
 }
 
 void ActionManager::Release()
 {
-    m_ActionMap.clear();
-	std::map<std::string, std::vector<ActionBinding>>().swap(m_ActionMap);
+    m_mActionMap.clear();
+	std::map<std::string, std::vector<ActionBinding>>().swap(m_mActionMap);
 }
 
 bool ActionManager::BindAction(const std::string& actionName, int vkCode)
 {
-    m_ActionMap[actionName].push_back({ vkCode,{} });
+    m_mActionMap[actionName].clear();
+    m_mActionMap[actionName].push_back({ vkCode, {} });
     return true;
 }
 
 bool ActionManager::BindShortcut(const std::string& actionName, int mainKey, const std::vector<int>& modifiers)
 {
-    m_ActionMap[actionName].push_back(ActionBinding{ mainKey, modifiers });
+    m_mActionMap[actionName].clear();
+    m_mActionMap[actionName].push_back(ActionBinding{ mainKey, modifiers });
     return true;
 }
 
 bool ActionManager::UnbindAction(const std::string& actionName)
 {
-	return m_ActionMap.erase(actionName) > 0;
+	return m_mActionMap.erase(actionName) > 0;
 }
 
 bool ActionManager::GetActionDown(const std::string& actionName) const
 {
-    auto it = m_ActionMap.find(actionName);
-    if (it == m_ActionMap.end())
+    auto it = m_mActionMap.find(actionName);
+    if (it == m_mActionMap.end())
     {
         return false;
     }
@@ -63,8 +63,8 @@ bool ActionManager::GetActionDown(const std::string& actionName) const
 
 bool ActionManager::GetActionPress(const std::string& actionName) const
 {
-    auto it = m_ActionMap.find(actionName);
-    if (it == m_ActionMap.end())
+    auto it = m_mActionMap.find(actionName);
+    if (it == m_mActionMap.end())
     {
         return false;
     }
@@ -92,8 +92,8 @@ bool ActionManager::GetActionPress(const std::string& actionName) const
 
 bool ActionManager::GetActionUp(const std::string& actionName) const
 {
-    auto it = m_ActionMap.find(actionName);
-    if (it == m_ActionMap.end())
+    auto it = m_mActionMap.find(actionName);
+    if (it == m_mActionMap.end())
     {
         return false;
     }
