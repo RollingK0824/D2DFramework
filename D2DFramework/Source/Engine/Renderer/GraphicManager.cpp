@@ -117,7 +117,7 @@ void GraphicManager::PreRender()
 	if (pRT)
 	{
 		pRT->BeginDraw();
-		pRT->Clear(D2D1::ColorF(D2D1::ColorF::DarkGray));
+		pRT->Clear(D2D1::ColorF(D2D1::ColorF::Black));
 		m_bIsD2DDrawing = true;
 	}
 }
