@@ -14,7 +14,7 @@ public:
 	void SetPosition(Vector2 pos) { m_RenderCommand.position = pos; }
 	void SetSize(Vector2 size) { m_size = size; }
 	void SetFillAmount(float fill) { m_fillAmount = (fill < 0.0f) ? 0.0f : (fill > 1.0f) ? 1.0f : fill; }
-	void SetOpacity(float opacity) { m_RenderCommand.opacity = opacity; }
+	void SetOpacity(float opacity) { m_RenderCommand.bitmap.opacity = opacity; }
 	void SetZOrder(int zOrder) { m_RenderCommand.zOrder = zOrder; }
 
 	Vector2 GetPosition() const { return m_RenderCommand.position; }
@@ -32,6 +32,8 @@ public:
 
 private:
 	RenderCommand m_RenderCommand; 
+	std::wstring m_textureKey = L"";
+
 	Vector2 m_size = { 100.0f, 30.0f };
 	float m_fillAmount = 1.0f;
 };

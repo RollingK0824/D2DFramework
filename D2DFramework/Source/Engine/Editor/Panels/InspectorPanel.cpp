@@ -248,12 +248,10 @@ void InspectorPanel::DrawComponents(GameObject* pObj)
 			{
 				ImGui::PushID(prop.name.c_str());
 
-				// [컬럼 0]: 라벨 텍스트 (Left-Aligned)
 				ImGui::AlignTextToFramePadding();
 				ImGui::Text(prop.name.c_str());
 				ImGui::NextColumn();
 
-				// [컬럼 1]: 입력 컨트롤 (Right-Anchored)
 				ImGui::SetNextItemWidth(-1.0f);
 
 				switch (prop.type)

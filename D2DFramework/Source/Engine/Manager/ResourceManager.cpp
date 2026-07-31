@@ -148,13 +148,15 @@ bool ResourceManager::LoadSpriteAtlas(const std::string& jsonPath, const std::ws
 
 	if (!LoadTexture(wTextureKey, wFilePath))return false;
 
+	ID2D1Bitmap* pBitmap = GetTexture(wTextureKey);
+
 	std::unordered_map<std::string, Sprite>tempSprites;
 	for (const auto& f : atlasJson["frames"])
 	{
 		std::string filename = f["filename"].get<std::string>();
 
 		Sprite sp;
-		sp.textureKey = wTextureKey;
+		sp.pTexture = pBitmap;
 
 		float x = f["frame"]["x"].get<float>();
 		float y = f["frame"]["y"].get<float>();

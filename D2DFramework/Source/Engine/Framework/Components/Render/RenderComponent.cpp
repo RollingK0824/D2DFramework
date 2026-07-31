@@ -2,6 +2,7 @@
 #include "RenderComponent.h"
 #include "Engine/Core/ComponentRegister.h"
 #include "Engine/Manager/ResourceManager.h"
+#include "Engine/Renderer/RenderCommand.h"
 #include "Engine/Framework/Scene.h"
 #include "Engine/Framework/GameObject.h"
 
@@ -10,37 +11,36 @@ static ComponentRegistrar<RenderComponent> registrar(EngineKey::Component::Rende
 RenderComponent::RenderComponent(GameObject* owner, TransformComponent* transform) : Component(owner, transform) 
 {
 	ExposeVariable("Z-Order", &m_RenderCommand.zOrder);
-	ExposeVariable("Opacity", &m_RenderCommand.opacity);
-	ExposeVariable("Flip X", &m_RenderCommand.flipX);
-	ExposeVariable("Flip Y", &m_RenderCommand.flipY);
+	ExposeVariable("Opacity", &m_RenderCommand.bitmap.opacity);
+	ExposeVariable("Flip X", &m_RenderCommand.bitmap.flipX);
+	ExposeVariable("Flip Y", &m_RenderCommand.bitmap.flipY);
 
 	ExposeVariable("Src Left", &m_RenderCommand.srcRect.left);
 	ExposeVariable("Src Top", &m_RenderCommand.srcRect.top);
 	ExposeVariable("Src Right", &m_RenderCommand.srcRect.right);
 	ExposeVariable("Src Bottom", &m_RenderCommand.srcRect.bottom);
 
-	ExposeTexture("Texture Key", &m_RenderCommand.textureKey);
-	// D2D 컬러 (R, G, B, A 피커 출력)
+	ExposeTexture("Texture Key", &m_textureKey);
 	ExposeVariable("Color", &m_RenderCommand.color);
 }
 void RenderComponent::SetNativeSize()
 {
-	if (!m_RenderCommand.pTexture && !m_RenderCommand.textureKey.empty())
+	if (!m_RenderCommand.bitmap.pTexture && !m_textureKey.empty())
 	{
-		m_RenderCommand.pTexture = ResourceManager::GetInstance()->GetTexture(m_RenderCommand.textureKey);
+		m_RenderCommand.bitmap.pTexture = ResourceManager::GetInstance()->GetTexture(m_textureKey);
 	}
 
-	if (m_RenderCommand.pTexture)
+	if (m_RenderCommand.bitmap.pTexture)
 	{
-		D2D1_SIZE_F size = m_RenderCommand.pTexture->GetSize();
+		D2D1_SIZE_F size = m_RenderCommand.bitmap.pTexture->GetSize();
 		m_RenderCommand.srcRect = D2D1::RectF(0.0f, 0.0f, size.width, size.height);
 	}
 }
 
 void RenderComponent::SetTextureKey(const std::wstring& textureKey)
 {
-	m_RenderCommand.textureKey = textureKey;
-	m_RenderCommand.pTexture = ResourceManager::GetInstance()->GetTexture(textureKey);
+	m_textureKey = textureKey;
+	m_RenderCommand.bitmap.pTexture = ResourceManager::GetInstance()->GetTexture(textureKey);
 
 	SetNativeSize();
 }
@@ -48,32 +48,31 @@ void RenderComponent::SetTextureKey(const std::wstring& textureKey)
 void RenderComponent::SetAsSprite(const Sprite& sprite)
 {
 	m_RenderCommand.type = RenderType::BITMAP;
-	m_RenderCommand.textureKey = sprite.textureKey;
-	m_RenderCommand.pTexture = ResourceManager::GetInstance()->GetTexture(sprite.textureKey);
+	m_RenderCommand.bitmap.pTexture = sprite.pTexture;
 	m_RenderCommand.srcRect = sprite.srcRect;
 	
-	m_RenderCommand.offset = sprite.offset;
-	m_RenderCommand.originalWidth = sprite.originalWidth;
-	m_RenderCommand.originalHeight = sprite.originalHeight;
+	m_RenderCommand.bitmap.offset = sprite.offset;
+	m_RenderCommand.bitmap.originalWidth = sprite.originalWidth;
+	m_RenderCommand.bitmap.originalHeight = sprite.originalHeight;
 	m_RenderCommand.pivot = sprite.pivot;
 }
 
 void RenderComponent::SetAsBitmap(ID2D1Bitmap* pBitmap, D2D1_RECT_F srcRect)
 {
 	m_RenderCommand.type = RenderType::BITMAP;
-	m_RenderCommand.pTexture = pBitmap;
+	m_RenderCommand.bitmap.pTexture = pBitmap;
 	m_RenderCommand.srcRect = srcRect;
 
-	m_RenderCommand.textureKey = L"";
+	m_textureKey = L"";
 }
 
 void RenderComponent::SetAsBitmap(const std::wstring& textureKey, D2D1_RECT_F srcRect)
 {
 	m_RenderCommand.type = RenderType::BITMAP;
-	m_RenderCommand.textureKey = textureKey;
+	m_textureKey = textureKey;
 	m_RenderCommand.srcRect = srcRect;
 
-	m_RenderCommand.pTexture = ResourceManager::GetInstance()->GetTexture(textureKey);
+	m_RenderCommand.bitmap.pTexture = ResourceManager::GetInstance()->GetTexture(textureKey);
 }
 
 void RenderComponent::Serialize(json& outJson) const
@@ -83,7 +82,7 @@ void RenderComponent::Serialize(json& outJson) const
 	outJson[EngineKey::Property::RenderType.data()] = static_cast<int>(m_RenderCommand.type);
 	outJson[EngineKey::Property::ZOrder.data()] = m_RenderCommand.zOrder;
 
-	std::string strKey(m_RenderCommand.textureKey.begin(), m_RenderCommand.textureKey.end());
+	std::string strKey(m_textureKey.begin(), m_textureKey.end());
 	outJson[EngineKey::Property::TextureKey.data()] = strKey;
 
 	outJson[EngineKey::Property::SrcRect.data()] =

@@ -26,6 +26,6 @@ private:
 	ActionManager() = default;
 	virtual ~ActionManager() = default;
 
-	std::map<std::string, std::vector<ActionBinding>> m_ActionMap;
+	std::map<std::string, std::vector<ActionBinding>> m_mActionMap;
 };
 

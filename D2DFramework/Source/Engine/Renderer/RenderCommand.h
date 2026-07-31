@@ -1,7 +1,8 @@
 ﻿#pragma once
-#include "Engine/Core/Define.h"
+#include <d2d1.h>
+#include "Engine/Core/Types.h"
 
-enum class RenderType
+enum class RenderType : uint8
 {
 	BITMAP,
 	DEBUG_RECT,
@@ -10,35 +11,68 @@ enum class RenderType
 	Debug_TEXT
 };
 
-struct RenderCommand
+struct BitmapParams
 {
-	RenderType type = RenderType::BITMAP;
-
-	std::wstring textureKey = L"";					// 그릴 이미지 키값
-	ID2D1Bitmap* pTexture = nullptr;				// 그릴 이미지 포인터
-
-	D2D1_RECT_F srcRect = { 0.0f,0.0f,0.0f,0.0f };	// 스프라이트 렌더링 기준 영역
-	Vector2 position;								// 월드 좌표계상의 위치
-	float rotation = 0.0f;							// 회전 값
-	float scaleX = 1.0f;							// X축 크기 배율
-	float scaleY = 1.0f;							// Y축 크기 배율
-
-	D2D1_POINT_2F offset = { 0.0f, 0.0f };
+	ID2D1Bitmap* pTexture = nullptr;
+	D2D1_POINT_2F offset = { 0, 0 };
 	float originalWidth = 0.0f;
 	float originalHeight = 0.0f;
-	D2D1_POINT_2F pivot = { 0.5f, 0.5f };
-
-	int zOrder = 0;			// Sorting Order (낮을수록 먼저 높을수록 나중)
-	float opacity = 1.0f;	// 투명도 등 추가 렌더링 옵션
-
-	// 상하 좌우 반전 플래그
-	bool flipX = false;					 
+	float opacity = 1.0f;
+	bool flipX = false;
 	bool flipY = false;
+};
 
-	D2D1::ColorF color = D2D1::ColorF::White;
+struct ShapeParams
+{
 	bool isFilled = true;
+};
 
-	std::wstring text = L"";
+struct TextParams
+{
+	std::wstring_view pText;
+	float fontSize = 12.0f;
+};
 
+struct LineParams
+{
+	D2D1_POINT_2F endPoint = { 0, 0 };
+	float thickness = 1.0f;
+};
+
+struct RenderCommand
+{
+	// 공통 데이터
+	D2D1_COLOR_F color = D2D1::ColorF(D2D1::ColorF::White);
+	D2D1_RECT_F srcRect = { 0, 0, 0, 0 };
+	Vector2 position = { 0.0f, 0.0f };
+	D2D1_POINT_2F pivot = { 0.5f, 0.5f };
+	float rotation = 0.0f;
+	float scaleX = 1.0f;
+	float scaleY = 1.0f;
+	int16 zOrder = 0;
+	RenderType type = RenderType::BITMAP;
 	bool isUI = false;
+
+	union
+	{
+		BitmapParams bitmap;
+		ShapeParams shape;
+		TextParams text;
+		LineParams line;
+	};
+
+	RenderCommand()
+		: color{ D2D1::ColorF(D2D1::ColorF::White) }
+		, srcRect{ 0.0f, 0.0f, 0.0f, 0.0f }
+		, position{ 0.0f, 0.0f }
+		, pivot{ 0.5f, 0.5f }
+		, rotation(0.0f)
+		, scaleX(1.0f)
+		, scaleY(1.0f)
+		, zOrder(0)
+		, type(RenderType::BITMAP)
+		, isUI(false)
+		, bitmap()
+	{
+	}
 };

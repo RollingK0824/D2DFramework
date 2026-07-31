@@ -70,27 +70,27 @@ void RenderSystem::Render()
 
 void RenderSystem::DrawBitmap(ID2D1RenderTarget* pRT, const RenderCommand& cmd)
 {
-	if (!cmd.pTexture) return;
+	if (!cmd.bitmap.pTexture) return;
 
 	float srcWidth = cmd.srcRect.right - cmd.srcRect.left;
 	float srcHeight = cmd.srcRect.bottom - cmd.srcRect.top;
 
-	float origW = (cmd.originalWidth > 0.0f) ? cmd.originalWidth : srcWidth;
-	float origH = (cmd.originalHeight > 0.0f) ? cmd.originalHeight : srcHeight;
+	float origW = (cmd.bitmap.originalWidth > 0.0f) ? cmd.bitmap.originalWidth : srcWidth;
+	float origH = (cmd.bitmap.originalHeight > 0.0f) ? cmd.bitmap.originalHeight : srcHeight;
 
 	pRT->SetTransform(CalculateSRTMatrix(cmd, origW, origH));
 
 	D2D1_RECT_F destRect = D2D1::RectF(
-		cmd.offset.x,
-		cmd.offset.y,
-		cmd.offset.x + srcWidth,
-		cmd.offset.y + srcHeight);
+		cmd.bitmap.offset.x,
+		cmd.bitmap.offset.y,
+		cmd.bitmap.offset.x + srcWidth,
+		cmd.bitmap.offset.y + srcHeight);
 
 	// 최종 렌더 타겟에 스프라이트 드로우 명령 하달
 	pRT->DrawBitmap(
-		cmd.pTexture,
+		cmd.bitmap.pTexture,
 		destRect,
-		cmd.opacity, // 알파 브렌딩 투명도 수치 적용
+		cmd.bitmap.opacity, // 알파 브렌딩 투명도 수치 적용
 		D2D1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR, // 픽셀 보간 모드 설정
 		&cmd.srcRect
 	);
@@ -105,7 +105,7 @@ void RenderSystem::DrawDebugRect(ID2D1RenderTarget* pRT, const RenderCommand& cm
 
 	D2D1_RECT_F drawRect = D2D1::RectF(0.0f, 0.0f, width, height);
 
-	if (cmd.isFilled)
+	if (cmd.shape.isFilled)
 		pRT->FillRectangle(drawRect, pBrush);
 	else
 		pRT->DrawRectangle(drawRect, pBrush);
@@ -120,7 +120,7 @@ void RenderSystem::DrawDebugCircle(ID2D1RenderTarget* pRT, const RenderCommand& 
 
 	D2D1_ELLIPSE ellipse = D2D1::Ellipse(D2D1::Point2F(0.0f, 0.0f), radius, radius);
 
-	if (cmd.isFilled)
+	if (cmd.shape.isFilled)
 		pRT->FillEllipse(ellipse, pBrush);
 	else
 		pRT->DrawEllipse(ellipse, pBrush, 2.0f);
@@ -140,7 +140,7 @@ void RenderSystem::DrawDebugLine(ID2D1RenderTarget* pRT, const RenderCommand& cm
 	D2D1_POINT_2F startPoint = D2D1::Point2F(cmd.position.x, cmd.position.y);
 	D2D1_POINT_2F endPoint = D2D1::Point2F(cmd.srcRect.left, cmd.srcRect.top);
 
-	pRT->DrawLine(startPoint, endPoint, pBrush, cmd.scaleX);
+	pRT->DrawLine(startPoint, endPoint, pBrush, cmd.line.thickness);
 }
 
 void RenderSystem::DrawDebugText(ID2D1RenderTarget* pRT, const RenderCommand& cmd, ID2D1SolidColorBrush* pBrush)
@@ -155,7 +155,7 @@ void RenderSystem::DrawDebugText(ID2D1RenderTarget* pRT, const RenderCommand& cm
 		DWRITE_FONT_WEIGHT_NORMAL,
 		DWRITE_FONT_STYLE_NORMAL,
 		DWRITE_FONT_STRETCH_NORMAL,
-		cmd.scaleX,               // 폰트 크기
+		cmd.text.fontSize,               // 폰트 크기
 		L"ko-KR",                   // 지역 레이아웃
 		&pTextFormat
 	);
@@ -175,8 +175,8 @@ void RenderSystem::DrawDebugText(ID2D1RenderTarget* pRT, const RenderCommand& cm
 		pRT->SetTransform(transformMatrix);
 		D2D1_RECT_F layoutRect = D2D1::RectF(0.0f, 0.0f, 800.0f, 300.0f);
 		pRT->DrawTextW(
-			cmd.text.c_str(),
-			static_cast<UINT32>(cmd.text.length()),
+			cmd.text.pText.data(),
+			static_cast<UINT32>(cmd.text.pText.length()),
 			pTextFormat,
 			layoutRect,
 			pBrush
@@ -187,8 +187,10 @@ void RenderSystem::DrawDebugText(ID2D1RenderTarget* pRT, const RenderCommand& cm
 
 D2D1_MATRIX_3X2_F RenderSystem::CalculateSRTMatrix(const RenderCommand& cmd, float width, float height)
 {
-	float scaleX = cmd.flipX ? -cmd.scaleX : cmd.scaleX;
-	float scaleY = cmd.flipY ? -cmd.scaleY : cmd.scaleY;
+	bool flipX = (cmd.type == RenderType::BITMAP) ? cmd.bitmap.flipX : false;
+	bool flipY = (cmd.type == RenderType::BITMAP) ? cmd.bitmap.flipY : false;
+	float scaleX = flipX ? -cmd.scaleX : cmd.scaleX;
+	float scaleY = flipY ? -cmd.scaleY : cmd.scaleY;
 
 	D2D1_POINT_2F localCenter = D2D1::Point2F(width * cmd.pivot.x, height * cmd.pivot.y);
 

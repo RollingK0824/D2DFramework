@@ -19,9 +19,9 @@ void UITextComponent::RenderUI()
 	cmd.type = RenderType::Debug_TEXT;
 	cmd.isUI = true; // Screen Space 고정
 	cmd.position = transform.GetPosition() + m_position;
-	cmd.scaleX = m_fontSize;
+	cmd.text.fontSize = m_fontSize;
 	cmd.color = m_color;
-	cmd.text = m_text;
+	cmd.text.pText = m_text;
 	cmd.zOrder = 99999; // 최상단 Layer
 	RenderSystem::GetInstance()->SubmitCommand(cmd);
 }

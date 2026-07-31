@@ -2,6 +2,7 @@
 #include "UIPanelComponent.h"
 #include "Engine/Core/ComponentRegister.h"
 #include "Engine/Framework/GameObject.h"
+#include "Engine/Renderer/RenderCommand.h"
 
 static ComponentRegistrar<UIPanelComponent> registrar(EngineKey::Component::UIPanelComponent.data());
 
@@ -16,6 +17,12 @@ void UIPanelComponent::AddChildUI(GameObject* pChildUI)
 		m_vChildUIObjects.push_back(pChildUI);
 	}
 }
+
+void UIPanelComponent::RenderUI()
+{
+
+}
+
 void UIPanelComponent::OnEnable()
 {
 	for (auto* child : m_vChildUIObjects)
@@ -23,6 +30,7 @@ void UIPanelComponent::OnEnable()
 		if (child) child->SetActive(true);
 	}
 }
+
 void UIPanelComponent::OnDisable()
 {
 	for (auto* child : m_vChildUIObjects)
