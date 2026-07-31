@@ -213,14 +213,6 @@
     <ClInclude Include="Source\Engine\Manager\ResourceManager.h" />
     <ClInclude Include="Source\Engine\Renderer\Sprite.h" />
     <ClInclude Include="Source\Engine\Framework\Components\UI\UIImageComponent.h" />
-    <ClInclude Include="Source\Game\Background\Background.h" />
-    <ClInclude Include="Source\Game\Bullet\Bullet.h" />
-    <ClInclude Include="Source\Game\Effect\Effect.h" />
-    <ClInclude Include="Source\Game\Enemy\Enemy.h" />
-    <ClInclude Include="Source\Game\Player\Controller.h" />
-    <ClInclude Include="Source\Game\Player\LocalController.h" />
-    <ClInclude Include="Source\Game\Player\NetworkController.h" />
-    <ClInclude Include="Source\Game\Player\Player.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Engine\Editor\Panels\ContentBrowserPanel.cpp" />
@@ -268,13 +260,6 @@
     <ClCompile Include="Source\Engine\Manager\TimeManager.cpp" />
     <ClCompile Include="Source\Engine\Manager\ResourceManager.cpp" />
     <ClCompile Include="Source\Engine\Framework\Components\UI\UIImageComponent.cpp" />
-    <ClCompile Include="Source\Game\Background\Background.cpp" />
-    <ClCompile Include="Source\Game\Bullet\Bullet.cpp" />
-    <ClCompile Include="Source\Game\Effect\Effect.cpp" />
-    <ClCompile Include="Source\Game\Enemy\Enemy.cpp" />
-    <ClCompile Include="Source\Game\Player\LocalController.cpp" />
-    <ClCompile Include="Source\Game\Player\NetworkController.cpp" />
-    <ClCompile Include="Source\Game\Player\Player.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="imgui.ini" />
