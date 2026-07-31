@@ -1,4 +1,4 @@
-﻿#include "Engine/Core/pch.h"
+#include "Engine/Core/pch.h"
 #include "RenderSystem.h"
 #include "Engine/Manager/CameraManager.h"
 #include "Engine/Renderer/GraphicManager.h"
@@ -132,8 +132,7 @@ void RenderSystem::DrawDebugLine(ID2D1RenderTarget* pRT, const RenderCommand& cm
 
 	if (!cmd.isUI)
 	{
-		CameraComponent* pMainCamera = CameraManager::GetInstance()->GetMainCamera();
-		if (pMainCamera) viewMatrix = pMainCamera->GetViewMatrix();
+		viewMatrix = CameraManager::GetInstance()->GetActiveViewMatrix();
 	}
 
 	pRT->SetTransform(viewMatrix);
@@ -203,13 +202,6 @@ D2D1_MATRIX_3X2_F RenderSystem::CalculateSRTMatrix(const RenderCommand& cmd, flo
 		return worldMatrix;
 	}
 
-	CameraComponent* pMainCamera = CameraManager::GetInstance()->GetMainCamera();
-	if (pMainCamera)
-	{
-		D2D1_MATRIX_3X2_F viewMatrix = pMainCamera->GetViewMatrix();
-
-		return worldMatrix * viewMatrix;
-	}
-
-	return worldMatrix;
+	D2D1_MATRIX_3X2_F viewMatrix = CameraManager::GetInstance()->GetActiveViewMatrix();
+	return worldMatrix * viewMatrix;
 }

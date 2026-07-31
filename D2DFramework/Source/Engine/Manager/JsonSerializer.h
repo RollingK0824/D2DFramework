@@ -39,6 +39,8 @@ public:
 	
 	static void ApplyJsonToGameObject(GameObject* pObj, const json& objJson);
 
+	static json SerializeScene(Scene* pScene);
+
 private:
 	static json SerializeGameObject(GameObject* pObj);
 

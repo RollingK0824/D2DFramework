@@ -1,6 +1,7 @@
 #include "Engine/Core/pch.h"
 #include "ViewportPanel.h"
 #include "Engine/Renderer/GraphicManager.h"
+#include "Engine/Manager/CameraManager.h"
 
 void ViewportPanel::Initialize()
 {
@@ -41,6 +42,20 @@ void ViewportPanel::OnDrawGUI()
 
     m_bIsHovered = ImGui::IsWindowHovered();
     m_bIsFocused = ImGui::IsWindowFocused();
+
+    if (m_bIsHovered)
+    {
+        if (ImGui::IsMouseDragging(ImGuiMouseButton_Right))
+        {
+            ImVec2 delta = ImGui::GetIO().MouseDelta;
+            CameraManager::GetInstance()->PanEditorCamera(Vector2(delta.x, delta.y));
+        }
+        float wheel = ImGui::GetIO().MouseWheel;
+        if (wheel != 0.0f)
+        {
+            CameraManager::GetInstance()->ZoomEditorCamera(wheel * 0.1f);
+        }
+    }
 
     ImGui::End();
     ImGui::PopStyleVar();

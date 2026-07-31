@@ -23,6 +23,27 @@ RenderComponent::RenderComponent(GameObject* owner, TransformComponent* transfor
 	// D2D 컬러 (R, G, B, A 피커 출력)
 	ExposeVariable("Color", &m_RenderCommand.color);
 }
+void RenderComponent::SetNativeSize()
+{
+	if (!m_RenderCommand.pTexture && !m_RenderCommand.textureKey.empty())
+	{
+		m_RenderCommand.pTexture = ResourceManager::GetInstance()->GetTexture(m_RenderCommand.textureKey);
+	}
+
+	if (m_RenderCommand.pTexture)
+	{
+		D2D1_SIZE_F size = m_RenderCommand.pTexture->GetSize();
+		m_RenderCommand.srcRect = D2D1::RectF(0.0f, 0.0f, size.width, size.height);
+	}
+}
+
+void RenderComponent::SetTextureKey(const std::wstring& textureKey)
+{
+	m_RenderCommand.textureKey = textureKey;
+	m_RenderCommand.pTexture = ResourceManager::GetInstance()->GetTexture(textureKey);
+
+	SetNativeSize();
+}
 
 void RenderComponent::SetAsSprite(const Sprite& sprite)
 {

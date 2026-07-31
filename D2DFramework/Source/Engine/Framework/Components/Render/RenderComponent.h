@@ -26,9 +26,11 @@ public:
 		m_RenderCommand.color = color;
 		m_RenderCommand.isFilled = isFilled;
 	}
+	void SetNativeSize();
 
 	void SetAsSprite(const Sprite& sprite);
 
+	void SetTextureKey(const std::wstring& textureKey);
 	void SetAsBitmap(ID2D1Bitmap* pBitmap, D2D1_RECT_F srcRect);
 	void SetAsBitmap(const std::wstring& textureKey, D2D1_RECT_F srcRect);
 
@@ -36,6 +38,7 @@ public:
 	void SetOpacity(float opacity) { m_RenderCommand.opacity = opacity; }
 	void SetFlip(bool flipX, bool flipY) { m_RenderCommand.flipX = flipX; m_RenderCommand.flipY = flipY; }
 	void SetScale(float scaleX, float scaleY) { m_RenderCommand.scaleX = scaleX; m_RenderCommand.scaleY = scaleY; }
+
 
 	// RenderCommand Getter
 	const RenderCommand& GetRenderCommand() const { return m_RenderCommand; }

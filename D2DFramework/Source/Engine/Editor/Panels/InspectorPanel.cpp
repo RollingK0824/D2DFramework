@@ -6,7 +6,7 @@
 #include "Engine/Framework/GameObject.h"
 #include "Engine/Framework/Base/Component.h"
 #include "Engine/Framework/Components/Core/TransformComponent.h"
-
+#include "Engine/Framework/Components/Render/RenderComponent.h"
 void InspectorPanel::Initialize()
 {
 	GUISystem::GetInstance()->RegisterPanel(this);
@@ -323,37 +323,49 @@ void InspectorPanel::DrawComponents(GameObject* pObj)
 					}
 					break;
 
+
 				case PropType::Texture:
+				{
+					std::wstring* wKey = static_cast<std::wstring*>(prop.data);
+					std::string keyStr(wKey->begin(), wKey->end());
+
+					ID3D11ShaderResourceView* pSRV = ResourceManager::GetInstance()->GetTextureSRV(*wKey);
+					if (pSRV) ImGui::Image((ImTextureID)pSRV, ImVec2(35.0f, 35.0f));
+					else ImGui::Button("No Image", ImVec2(35.0f, 35.0f));
+					ImGui::SameLine();
+
+					std::string btnLabel = keyStr.empty() ? "Select..." : keyStr;
+					if (ImGui::Button(btnLabel.c_str(), ImVec2(100.0f, 25.0f)))
 					{
-						std::wstring* wKey = static_cast<std::wstring*>(prop.data);
-						std::string keyStr(wKey->begin(), wKey->end());
+						ImGui::OpenPopup("TexturePickerPopup");
+					}
 
-						ID3D11ShaderResourceView* pSRV = ResourceManager::GetInstance()->GetTextureSRV(*wKey);
-						if (pSRV) ImGui::Image((ImTextureID)pSRV, ImVec2(35.0f, 35.0f));
-						else ImGui::Button("No Image", ImVec2(35.0f, 35.0f));
-
-						ImGui::SameLine();
-						std::string btnLabel = keyStr.empty() ? "Select..." : keyStr;
-						if (ImGui::Button(btnLabel.c_str(), ImVec2(-1.0f, 25.0f)))
+					ImGui::SameLine();
+					if (ImGui::Button("Set Native Size"))
+					{
+						if (RenderComponent* renderComp = dynamic_cast<RenderComponent*>(comp))
 						{
-							ImGui::OpenPopup("TexturePickerPopup");
-						}
-
-						if (ImGui::BeginPopup("TexturePickerPopup"))
-						{
-							auto loadedTextureKeys = ResourceManager::GetInstance()->GetLoadedTextureKeys();
-							for (const auto& keyName : loadedTextureKeys)
-							{
-								if (ImGui::Selectable(keyName.c_str()))
-								{
-									*wKey = std::wstring(keyName.begin(), keyName.end());
-								}
-							}
-							ImGui::EndPopup();
+							renderComp->SetNativeSize();
 						}
 					}
-					break;
-
+					if (ImGui::BeginPopup("TexturePickerPopup"))
+					{
+						auto loadedTextureKeys = ResourceManager::GetInstance()->GetLoadedTextureKeys();
+						for (const auto& keyName : loadedTextureKeys)
+						{
+							if (ImGui::Selectable(keyName.c_str()))
+							{
+								*wKey = std::wstring(keyName.begin(), keyName.end());
+								if (RenderComponent* renderComp = dynamic_cast<RenderComponent*>(comp))
+								{
+									renderComp->SetTextureKey(*wKey);
+								}
+							}
+						}
+						ImGui::EndPopup();
+					}
+				}
+				break;
 				case PropType::StringVector:
 					{
 						auto* vec = static_cast<std::vector<std::string>*>(prop.data);

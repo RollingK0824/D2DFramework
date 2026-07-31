@@ -158,6 +158,21 @@ void JsonSerializer::ApplyJsonToGameObject(GameObject* pObj, const json& objJson
 	}
 }
 
+json JsonSerializer::SerializeScene(Scene* pScene)
+{
+	if (pScene == nullptr) return json();
+	json sceneJson;
+	sceneJson[EngineKey::Document::SceneName.data()] = pScene->GetSceneName();
+	sceneJson[EngineKey::Document::GameObjects.data()] = std::vector<json>();
+	const auto& gameObjects = pScene->GetGameObjects();
+	for (auto* obj : gameObjects)
+	{
+		if (obj == nullptr || obj->IsDead()) continue;
+		sceneJson[EngineKey::Document::GameObjects.data()].push_back(SerializeGameObject(obj));
+	}
+	return sceneJson;
+}
+
 void JsonSerializer::RegisterComponentFactory(const std::string& typeName, std::function<Component* (GameObject*)> factory)
 {
 	GetComponentFactory()[typeName] = factory;

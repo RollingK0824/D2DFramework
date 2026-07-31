@@ -154,6 +154,28 @@ bool SceneManager::LoadSceneFromFile(const std::string& jsonFilePath)
     return LoadScene(sceneName);
 }
 
+void SceneManager::SavePlaySnapshot()
+{
+    if (!m_pActiveScene) return;
+    m_playSceneSnapshot.clear();
+    // 1. 현재 활성화된 m_pActiveScene을 RAM 메모리 json으로 백업
+    m_playSceneSnapshot = JsonSerializer::SerializeScene(m_pActiveScene);
+    m_bHasSnapshot = true;
+}
+
+void SceneManager::RestorePlaySnapshot()
+{
+    if (!m_pActiveScene || !m_bHasSnapshot) return;
+    // 1. 활성 씬의 기존 오브젝트 해제 후 재초기화
+    m_pActiveScene->Release();
+    m_pActiveScene->Initialize();
+    // 2. JsonSerializer를 사용하여 RAM 스냅샷 json에서 활성 씬 복원
+    JsonSerializer::LoadScene(m_pActiveScene, m_playSceneSnapshot);
+    // 3. 임시 스냅샷 메모리 비우기
+    m_playSceneSnapshot.clear();
+    m_bHasSnapshot = false;
+}
+
 void SceneManager::ChangeSceneInternal()
 {
     if (m_pNextScene == nullptr)return;
