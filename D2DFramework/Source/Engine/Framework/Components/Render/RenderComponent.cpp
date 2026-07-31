@@ -1,4 +1,4 @@
-#include "Engine/Core/pch.h"
+﻿#include "Engine/Core/pch.h"
 #include "RenderComponent.h"
 #include "Engine/Core/ComponentRegister.h"
 #include "Engine/Manager/ResourceManager.h"
@@ -18,18 +18,31 @@ RenderComponent::RenderComponent(GameObject* owner, TransformComponent* transfor
 	ExposeVariable("Src Top", &m_RenderCommand.srcRect.top);
 	ExposeVariable("Src Right", &m_RenderCommand.srcRect.right);
 	ExposeVariable("Src Bottom", &m_RenderCommand.srcRect.bottom);
+
+	ExposeTexture("Texture Key", &m_RenderCommand.textureKey);
+	// D2D 컬러 (R, G, B, A 피커 출력)
+	ExposeVariable("Color", &m_RenderCommand.color);
+}
+void RenderComponent::SetNativeSize()
+{
+	if (!m_RenderCommand.pTexture && !m_RenderCommand.textureKey.empty())
+	{
+		m_RenderCommand.pTexture = ResourceManager::GetInstance()->GetTexture(m_RenderCommand.textureKey);
+	}
+
+	if (m_RenderCommand.pTexture)
+	{
+		D2D1_SIZE_F size = m_RenderCommand.pTexture->GetSize();
+		m_RenderCommand.srcRect = D2D1::RectF(0.0f, 0.0f, size.width, size.height);
+	}
 }
 
-void RenderComponent::OnDrawImGui()
+void RenderComponent::SetTextureKey(const std::wstring& textureKey)
 {
-	Component::OnDrawImGui();
+	m_RenderCommand.textureKey = textureKey;
+	m_RenderCommand.pTexture = ResourceManager::GetInstance()->GetTexture(textureKey);
 
-	if (ImGui::Button("Reset Sprite Settings"))
-	{
-		m_RenderCommand.flipX = false;
-		m_RenderCommand.flipY = false;
-		m_RenderCommand.opacity = 1.0f;
-	}
+	SetNativeSize();
 }
 
 void RenderComponent::SetAsSprite(const Sprite& sprite)
@@ -38,7 +51,7 @@ void RenderComponent::SetAsSprite(const Sprite& sprite)
 	m_RenderCommand.textureKey = sprite.textureKey;
 	m_RenderCommand.pTexture = ResourceManager::GetInstance()->GetTexture(sprite.textureKey);
 	m_RenderCommand.srcRect = sprite.srcRect;
-
+	
 	m_RenderCommand.offset = sprite.offset;
 	m_RenderCommand.originalWidth = sprite.originalWidth;
 	m_RenderCommand.originalHeight = sprite.originalHeight;
@@ -63,7 +76,7 @@ void RenderComponent::SetAsBitmap(const std::wstring& textureKey, D2D1_RECT_F sr
 	m_RenderCommand.pTexture = ResourceManager::GetInstance()->GetTexture(textureKey);
 }
 
-void RenderComponent::Serialize(nlohmann::json& outJson) const
+void RenderComponent::Serialize(json& outJson) const
 {
 	Component::Serialize(outJson);
 
@@ -80,7 +93,7 @@ void RenderComponent::Serialize(nlohmann::json& outJson) const
 	};
 }
 
-void RenderComponent::Deserialize(const nlohmann::json& inJson)
+void RenderComponent::Deserialize(const json& inJson)
 {
 	Component::Deserialize(inJson);
 

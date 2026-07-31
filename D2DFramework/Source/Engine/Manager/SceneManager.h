@@ -27,10 +27,17 @@ public:
 
 	bool SaveActiveScene(const std::string& jsonFilePath = "Resources/Json/DefaultScene.json");
 	bool LoadSceneFromFile(const std::string& jsonFilePath);
+
+	void SavePlaySnapshot();
+	void RestorePlaySnapshot();
+
 private:
 	std::unordered_map<std::string, Scene*> m_mapScenes;
 	Scene* m_pActiveScene = nullptr;
 	Scene* m_pNextScene = nullptr;
+
+	json m_playSceneSnapshot;
+	bool m_bHasSnapshot = false;
 
 	void ChangeSceneInternal();
 };

@@ -9,30 +9,19 @@ public:
     BoxCollider(GameObject* owner, TransformComponent* transform);
 	virtual ~BoxCollider() = default;
 
-    virtual void Serialize(nlohmann::json& outJson) const override
+    virtual void Serialize(json& outJson) const override
     {
         ColliderComponent::Serialize(outJson);
         outJson["HalfWidth"] = m_HalfWidth;
         outJson["HalfHeight"] = m_HalfHeight;
     }
 
-    virtual void Deserialize(const nlohmann::json& inJson) override
+    virtual void Deserialize(const json& inJson) override
     {
         ColliderComponent::Deserialize(inJson);
         if (inJson.contains("HalfWidth")) m_HalfWidth = inJson["HalfWidth"].get<float>();
         if (inJson.contains("HalfHeight")) m_HalfHeight = inJson["HalfHeight"].get<float>();
         RebuildShape();
-    }
-
-    virtual void OnDrawImGui() override
-    {
-        ColliderComponent::OnDrawImGui(); // 부모(공통 속성) 먼저 그리기
-
-        bool isChanged = false;
-        if (ImGui::DragFloat("Half Width", &m_HalfWidth, 1.0f, 0.1f, 1000.0f)) isChanged = true;
-        if (ImGui::DragFloat("Half Height", &m_HalfHeight, 1.0f, 0.1f, 1000.0f)) isChanged = true;
-
-        if (isChanged) RebuildShape();
     }
 
 	void SetSize(float width, float height)

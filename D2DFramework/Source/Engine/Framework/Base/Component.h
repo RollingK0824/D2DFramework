@@ -1,12 +1,22 @@
 #pragma once
 #include "Engine/Core/Define.h"
-#include <string_view>
 
 class GameObject;
 class ColliderComponent;
 class TransformComponent;
 
-enum class PropType { Int, Float, Bool, String };
+enum class PropType
+{
+	Int,
+	Float,
+	Bool,
+	String,
+	WString,
+	Vector2,
+	Color,
+	StringVector,
+	Texture
+};
 
 struct ExposedProperty
 {
@@ -30,8 +40,8 @@ public:
 
 	Component(GameObject* owner)
 		:m_pOwnerGameObject(owner)
-		,m_pTransform(reinterpret_cast<TransformComponent*>(this))
-		,m_bIsEnabled(true)
+		, m_pTransform(reinterpret_cast<TransformComponent*>(this))
+		, m_bIsEnabled(true)
 	{
 	}
 
@@ -71,54 +81,22 @@ public:
 	void ExposeVariable(const std::string& name, float* var) { m_vProperties.push_back({ name,PropType::Float,var }); }
 	void ExposeVariable(const std::string& name, bool* var) { m_vProperties.push_back({ name,PropType::Bool,var }); }
 	void ExposeVariable(const std::string& name, std::string* var) { m_vProperties.push_back({ name,PropType::String,var }); }
+	void ExposeVariable(const std::string& name, std::wstring* var) { m_vProperties.push_back({ name, PropType::WString, var }); }
+	void ExposeVariable(const std::string& name, Vector2* var) { m_vProperties.push_back({ name, PropType::Vector2, var }); }
+	void ExposeVariable(const std::string& name, D2D1_COLOR_F* var) { m_vProperties.push_back({ name, PropType::Color, var }); }
+	void ExposeVariable(const std::string& name, std::vector<std::string>* var) { m_vProperties.push_back({ name, PropType::StringVector, var }); }
+	void ExposeTexture(const std::string& name, std::string* textureKey) { m_vProperties.push_back({ name, PropType::Texture, textureKey }); }
+	void ExposeTexture(const std::string& name, std::wstring* textureKey) { m_vProperties.push_back({ name, PropType::Texture, textureKey }); }
 
-	virtual void OnDrawImGui()
-	{
-		int idCounter = 0;
-
-		for (auto& prop : m_vProperties)
-		{
-			ImGui::PushID(idCounter++);
-
-			switch (prop.type)
-			{
-			case PropType::Int:
-				ImGui::DragInt(prop.name.c_str(), static_cast<int*>(prop.data), 1);
-				break;
-
-			case PropType::Float:
-				ImGui::DragFloat(prop.name.c_str(), static_cast<float*>(prop.data), 0.1f);
-				break;
-
-			case PropType::Bool:
-				ImGui::Checkbox(prop.name.c_str(), static_cast<bool*>(prop.data));
-				break;
-
-			case PropType::String:
-			{
-				std::string* pStr = static_cast<std::string*>(prop.data);
-				char buffer[256];
-				strcpy_s(buffer, pStr->c_str());
-
-				if (ImGui::InputText(prop.name.c_str(), buffer, sizeof(buffer)))
-				{
-					*pStr = buffer;
-				}
-				break;
-			}
-			}
-
-			ImGui::PopID();
-		}
-	}
+	const std::vector<ExposedProperty>& GetProperties() const { return m_vProperties; }
 
 	virtual void Awake() {};
 	virtual void Start() {};
 
-	void SetEnabled(bool enabled) 
-	{ 
+	void SetEnabled(bool enabled)
+	{
 		if (m_bIsEnabled == enabled) return;
-		m_bIsEnabled = enabled; 
+		m_bIsEnabled = enabled;
 
 		if (m_bIsEnabled)OnEnable();
 		else OnDisable();
@@ -133,11 +111,11 @@ public:
 
 	virtual std::string_view GetComponentType() const = 0;
 
-	virtual void Serialize(nlohmann::json& outJson) const
+	virtual void Serialize(json& outJson) const
 	{
 		outJson[EngineKey::Property::IsEnabled.data()] = m_bIsEnabled;
 	}
-	virtual void Deserialize(const nlohmann::json& inJson)
+	virtual void Deserialize(const json& inJson)
 	{
 		if (inJson.contains(EngineKey::Property::IsEnabled.data()))
 		{

@@ -11,8 +11,6 @@ public:
 	RenderComponent(GameObject* owner, TransformComponent* transform);
 	virtual ~RenderComponent()override = default;
 
-	virtual void OnDrawImGui() override;
-
 	void SetAsCircle(float radius, D2D1::ColorF color, bool isFilled = true)
 	{
 		m_RenderCommand.type = RenderType::DEBUG_CIRCLE;
@@ -28,9 +26,11 @@ public:
 		m_RenderCommand.color = color;
 		m_RenderCommand.isFilled = isFilled;
 	}
+	void SetNativeSize();
 
 	void SetAsSprite(const Sprite& sprite);
 
+	void SetTextureKey(const std::wstring& textureKey);
 	void SetAsBitmap(ID2D1Bitmap* pBitmap, D2D1_RECT_F srcRect);
 	void SetAsBitmap(const std::wstring& textureKey, D2D1_RECT_F srcRect);
 
@@ -39,12 +39,13 @@ public:
 	void SetFlip(bool flipX, bool flipY) { m_RenderCommand.flipX = flipX; m_RenderCommand.flipY = flipY; }
 	void SetScale(float scaleX, float scaleY) { m_RenderCommand.scaleX = scaleX; m_RenderCommand.scaleY = scaleY; }
 
+
 	// RenderCommand Getter
 	const RenderCommand& GetRenderCommand() const { return m_RenderCommand; }
 
 	std::string_view GetComponentType() const { return EngineKey::Component::Render; }
-	void Serialize(nlohmann::json& outJson)const override;
-	void Deserialize(const nlohmann::json& inJson)override;
+	void Serialize(json& outJson)const override;
+	void Deserialize(const json& inJson)override;
 
 private:
 	RenderCommand m_RenderCommand;

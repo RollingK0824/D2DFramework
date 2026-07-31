@@ -36,6 +36,10 @@ private:
 	std::vector<IRenderable*> m_vRenderableSystems;
 
 private:
+#if WITH_EDITOR
 	EnginePlayState m_PlayState = EnginePlayState::Edit;
+#else
+	EnginePlayState m_PlayState = EnginePlayState::Play;
+#endif
 };
 

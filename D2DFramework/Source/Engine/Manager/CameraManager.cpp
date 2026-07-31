@@ -2,31 +2,30 @@
 #include "CameraManager.h"
 #include "Engine/Core/EngineKernel.h"
 #include "Engine/Framework/Components/Core/CameraComponent.h"
+#include "Engine/Renderer/GraphicManager.h"
 
 D2D1_MATRIX_3X2_F CameraManager::GetActiveViewMatrix() const
 {
-    // Play 모드이고 씬에 게임 카메라가 존재하면 게임 카메라의 View Matrix 사용
-    if (EngineKernel::GetInstance()->GetPlayState() == EnginePlayState::Play && m_pMainCamera)
+    if (m_pMainCamera)
     {
         return m_pMainCamera->GetViewMatrix();
     }
-
-    // Edit 모드일 때는 에디터 독립 카메라 View Matrix 연산
-    D2D1_POINT_2F center = { GWinSizeX * 0.5f, GWinSizeY * 0.5f };
-
-    return D2D1::Matrix3x2F::Translation(-m_editorCamPos.x, -m_editorCamPos.y) *
-        D2D1::Matrix3x2F::Scale(m_editorCamZoom, m_editorCamZoom, center) *
-        D2D1::Matrix3x2F::Translation(center.x, center.y);
+    // 2. 메인 카메라이 없을 경우 에디터 전용 카메라 View Matrix 계산
+    float screenWidth = GraphicManager::GetInstance()->GetScreenWidth();
+    float screenHeight = GraphicManager::GetInstance()->GetScreenHeight();
+    D2D1_POINT_2F screenCenter = D2D1::Point2F(screenWidth * 0.5f, screenHeight * 0.5f);
+    D2D1_MATRIX_3X2_F matTrans = D2D1::Matrix3x2F::Translation(-m_editorCamPos.x, -m_editorCamPos.y);
+    D2D1_MATRIX_3X2_F matScale = D2D1::Matrix3x2F::Scale(m_editorCamZoom, m_editorCamZoom, D2D1::Point2F(0.0f, 0.0f));
+    D2D1_MATRIX_3X2_F matCenter = D2D1::Matrix3x2F::Translation(screenCenter.x, screenCenter.y);
+    return matTrans * matScale * matCenter;
 }
 
 D2D1_POINT_2F CameraManager::ScreenToWorld(D2D1_POINT_2F screenPoint) const
 {
-    if (EngineKernel::GetInstance()->GetPlayState() == EnginePlayState::Play && m_pMainCamera)
+    if (m_pMainCamera)
     {
         return m_pMainCamera->ScreenToWorldPoint(screenPoint);
     }
-
-    // Edit 모드 화면 -> 월드 좌표 변환
     D2D1_MATRIX_3X2_F viewMat = GetActiveViewMatrix();
     D2D1_MATRIX_3X2_F invViewMat = viewMat;
     if (D2D1InvertMatrix(&invViewMat))

@@ -25,73 +25,63 @@ bool ResourceManager::Initialize()
 
 ID2D1Bitmap* ResourceManager::LoadTexture(const std::wstring& key, const std::wstring& filePath)
 {
-	// 중복 로드 방지 : 이미 Pool에 존재하는 Key인지 확인
 	auto iter = m_texturePool.find(key);
-	if (iter != m_texturePool.end())	// 이미 존재하는 Key라면
-	{
-		return iter->second; // 이미 로드된 텍스처 반환
-	}
-
+	if (iter != m_texturePool.end()) return iter->second;
 	if (!m_pWICFactory) return nullptr;
-
-	// RenderTarget GraphicManager에서 가져오기
 	ID2D1RenderTarget* pRenderTarget = GraphicManager::GetInstance()->GetRenderTarget();
 	if (!pRenderTarget) return nullptr;
-
-	// WIC 디코딩 파이프라인 구성
 	IWICBitmapDecoder* pDecoder = nullptr;
 	IWICBitmapFrameDecode* pSource = nullptr;
 	IWICFormatConverter* pConverter = nullptr;
 	ID2D1Bitmap* pBitmap = nullptr;
-
-	// 하드디스크에서 파일 열람
-	HRESULT hr = m_pWICFactory->CreateDecoderFromFilename(
-		filePath.c_str(),
-		nullptr,
-		GENERIC_READ,
-		WICDecodeMetadataCacheOnLoad,
-		&pDecoder
-	);
-	if (FAILED(hr))return nullptr;
-
-	// 이미지의 첫 번째 프레임 데이터 추출
-	hr = pDecoder->GetFrame(0, &pSource);
-	if (FAILED(hr)) { pDecoder->Release(); return nullptr; }
-
-	// RGBA32 포맷으로 변환
-	hr = m_pWICFactory->CreateFormatConverter(&pConverter);
-	if (FAILED(hr)) { pSource->Release(); pDecoder->Release(); return nullptr; }
-
-	hr = pConverter->Initialize(
-		pSource,
-		GUID_WICPixelFormat32bppPBGRA,	// 알파 채널(투명도) 포함 RGBA 포맷
-		WICBitmapDitherTypeNone,
-		nullptr,
-		0.0,
-		WICBitmapPaletteTypeCustom
-	);
-
-	if (SUCCEEDED(hr))
+	if (FAILED(m_pWICFactory->CreateDecoderFromFilename(filePath.c_str(), nullptr, GENERIC_READ, WICDecodeMetadataCacheOnLoad, &pDecoder)))
+		return nullptr;
+	if (FAILED(pDecoder->GetFrame(0, &pSource))) { pDecoder->Release(); return nullptr; }
+	if (FAILED(m_pWICFactory->CreateFormatConverter(&pConverter))) { pSource->Release(); pDecoder->Release(); return nullptr; }
+	if (SUCCEEDED(pConverter->Initialize(pSource, GUID_WICPixelFormat32bppPBGRA, WICBitmapDitherTypeNone, nullptr, 0.0, WICBitmapPaletteTypeCustom)))
 	{
-		// Direct2D Bitmap으로 변환하여 GPU에 업로드
-		hr = pRenderTarget->CreateBitmapFromWicBitmap(
-			pConverter,
-			nullptr,
-			&pBitmap
-		);
+		// 1. Direct2D Bitmap 생성
+		pRenderTarget->CreateBitmapFromWicBitmap(pConverter, nullptr, &pBitmap);
+		// 2. ★ ImGui용 DX11 Texture2D & SRV 동시 생성 ★
+		UINT width = 0, height = 0;
+		pConverter->GetSize(&width, &height);
+		std::vector<BYTE> pixels(width * height * 4);
+		pConverter->CopyPixels(nullptr, width * 4, static_cast<UINT>(pixels.size()), pixels.data());
+		ID3D11Device* pD3DDevice = GraphicManager::GetInstance()->GetD3DDevice();
+		if (pD3DDevice && width > 0 && height > 0)
+		{
+			D3D11_TEXTURE2D_DESC desc = {};
+			desc.Width = width;
+			desc.Height = height;
+			desc.MipLevels = 1;
+			desc.ArraySize = 1;
+			desc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+			desc.SampleDesc.Count = 1;
+			desc.Usage = D3D11_USAGE_DEFAULT;
+			desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+			D3D11_SUBRESOURCE_DATA initData = {};
+			initData.pSysMem = pixels.data();
+			initData.SysMemPitch = width * 4;
+			ID3D11Texture2D* pTex2D = nullptr;
+			if (SUCCEEDED(pD3DDevice->CreateTexture2D(&desc, &initData, &pTex2D)) && pTex2D)
+			{
+				ID3D11ShaderResourceView* pSRV = nullptr;
+				if (SUCCEEDED(pD3DDevice->CreateShaderResourceView(pTex2D, nullptr, &pSRV)))
+				{
+					m_srvPool[key] = pSRV; // SRV 보관
+				}
+				pTex2D->Release();
+			}
+		}
 	}
-
 	if (pConverter) pConverter->Release();
 	if (pSource) pSource->Release();
 	if (pDecoder) pDecoder->Release();
-
-	if (SUCCEEDED(hr) && pBitmap)
+	if (pBitmap)
 	{
-		// 텍스처 풀에 등록
 		m_texturePool[key] = pBitmap;
 		return pBitmap;
 	}
-
 	return nullptr;
 }
 
@@ -216,6 +206,29 @@ const AnimationClip* ResourceManager::GetAnimationClip(const std::wstring& clipK
 	return nullptr;
 }
 
+ID3D11ShaderResourceView* ResourceManager::GetTextureSRV(const std::wstring& key) const
+{
+	auto iter = m_srvPool.find(key);
+	if (iter != m_srvPool.end())
+	{
+		return iter->second;
+	}
+	return nullptr;
+}
+
+std::vector<std::string> ResourceManager::GetLoadedTextureKeys() const
+{
+	std::vector<std::string> keys;
+	keys.reserve(m_texturePool.size());
+	for (const auto& pair : m_texturePool)
+	{
+		// std::wstring -> std::string 변환하여 벡터에 담기
+		std::string keyStr(pair.first.begin(), pair.first.end());
+		keys.push_back(keyStr);
+	}
+	return keys;
+}
+
 void ResourceManager::Release()
 {
 	// 텍스처 풀에 등록된 모든 비트맵 리소스 해제
@@ -227,8 +240,13 @@ void ResourceManager::Release()
 			pair.second = nullptr;
 		}
 	}
-
 	m_texturePool.clear();
+
+	for (auto& pair : m_srvPool)
+	{
+		if (pair.second) pair.second->Release();
+	}
+	m_srvPool.clear();
 
 	// WIC Factory 해제
 	if (m_pWICFactory)
@@ -236,4 +254,5 @@ void ResourceManager::Release()
 		m_pWICFactory->Release();
 		m_pWICFactory = nullptr;
 	}
+
 }

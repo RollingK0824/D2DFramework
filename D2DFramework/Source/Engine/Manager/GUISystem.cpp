@@ -11,6 +11,7 @@ bool GUISystem::Initialize()
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
     ImGui::StyleColorsDark();
 
     HWND hWnd = GameApp::GetInstance()->GetWindowHandle();
@@ -48,6 +49,8 @@ void GUISystem::Update(float dt)
     ImGui_ImplDX11_NewFrame();
     ImGui_ImplWin32_NewFrame();
     ImGui::NewFrame();
+
+    ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport());
 }
 
 void GUISystem::Render()
@@ -63,6 +66,14 @@ void GUISystem::Render()
 
     ImGui::Render();
     ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+
+    ImGuiIO& io = ImGui::GetIO();
+    if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+    {
+        ID3D11DeviceContext* pCtx = GraphicManager::GetInstance()->GetD3DContext();
+        ImGui::UpdatePlatformWindows();
+        ImGui::RenderPlatformWindowsDefault();
+    }
 }
 
 void GUISystem::RegisterPanel(IGUIPanel* pPanel)

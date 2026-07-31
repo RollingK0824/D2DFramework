@@ -13,8 +13,6 @@ public:
 	AnimatorComponent(const AnimatorComponent& other);
 	virtual ~AnimatorComponent() override = default;
 
-	virtual void OnDrawImGui() override;
-
 	virtual void Awake() override;
 	virtual void Update(float dt)override;
 
@@ -29,8 +27,8 @@ public:
 	}
 
 	virtual std::string_view GetComponentType() const override { return EngineKey::Component::Animator; }
-	virtual void Serialize(nlohmann::json& outJson)const override;
-	virtual void Deserialize(const nlohmann::json& inJson)override;
+	virtual void Serialize(json& outJson)const override;
+	virtual void Deserialize(const json& inJson)override;
 private:
 	RenderComponent* m_pRenderComp = nullptr;
 

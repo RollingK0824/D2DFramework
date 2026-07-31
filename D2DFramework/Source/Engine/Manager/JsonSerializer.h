@@ -8,13 +8,13 @@ class JsonSerializer
 {
 public:
 	static bool SaveScene(Scene* pScene, const std::string& filePath);
-	static bool LoadScene(Scene* pScene, nlohmann::json& sceneJson);
+	static bool LoadScene(Scene* pScene, json& sceneJson);
 
 	static void RegisterComponentFactory(const std::string& typeName, std::function<Component* (GameObject*)> factory);
 
 	static bool SavePrefab(GameObject* pObj, const std::string& saveDirectory);
 
-	static GameObject* InstantiateFromPrefabData(Scene* pScene, const nlohmann::json& prefabJson);
+	static GameObject* InstantiateFromPrefabData(Scene* pScene, const json& prefabJson);
 
 	static std::vector<std::string> GetRegisteredComponentNames()
 	{
@@ -37,10 +37,12 @@ public:
 		return nullptr;
 	}
 	
-	static void ApplyJsonToGameObject(GameObject* pObj, const nlohmann::json& objJson);
+	static void ApplyJsonToGameObject(GameObject* pObj, const json& objJson);
+
+	static json SerializeScene(Scene* pScene);
 
 private:
-	static nlohmann::json SerializeGameObject(GameObject* pObj);
+	static json SerializeGameObject(GameObject* pObj);
 
 	static std::unordered_map<std::string, std::function<Component* (GameObject*)>>& GetComponentFactory();
 };

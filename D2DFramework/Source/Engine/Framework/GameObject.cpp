@@ -101,19 +101,31 @@ void GameObject::RegisterComponentToScene(Component* comp)
 	}
 }
 
-void GameObject::Serialize(nlohmann::json& outJson)const
+void GameObject::RemoveComponent(Component* comp)
+{
+	if (comp == nullptr || comp == m_pTransform) return;
+	auto it = std::find(m_vComponents.begin(), m_vComponents.end(), comp);
+	if (it != m_vComponents.end())
+	{
+		comp->OnDestroy();
+		delete comp;
+		m_vComponents.erase(it);
+	}
+}
+
+void GameObject::Serialize(json& outJson)const
 {
 	outJson[EngineKey::Property::IsActive.data()] = m_bIsActive;
-	outJson[EngineKey::Property::Components.data()] = std::vector<nlohmann::json>();
+	outJson[EngineKey::Property::Components.data()] = std::vector<json>();
 
 	for (auto* comp : m_vComponents)
 	{
 		if (!comp)continue;
 
-		nlohmann::json compJson;
+		json compJson;
 		compJson[EngineKey::Property::Type.data()] = comp->GetComponentType().data();
 
-		nlohmann::json compData;
+		json compData;
 		comp->Serialize(compData);
 		compJson[EngineKey::Property::Data.data()] = compData;
 

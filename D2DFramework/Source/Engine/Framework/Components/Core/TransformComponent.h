@@ -14,7 +14,7 @@ public:
 		return EngineKey::Component::Trnasform;
 	}
 
-	virtual void Serialize(nlohmann::json& outJson)const override
+	virtual void Serialize(json& outJson)const override
 	{
 		Component::Serialize(outJson);
 
@@ -23,7 +23,7 @@ public:
 		outJson[EngineKey::Property::Scale.data()] = { {"x",m_Scale.x},{"y",m_Scale.y} };
 	}
 
-	virtual void Deserialize(const nlohmann::json& inJson)override
+	virtual void Deserialize(const json& inJson)override
 	{
 		Component::Deserialize(inJson); 
 

@@ -35,48 +35,6 @@ AnimatorComponent::AnimatorComponent(const AnimatorComponent& other)
     this->m_pRenderComp = nullptr;
 }
 
-void AnimatorComponent::OnDrawImGui()
-{
-    Component::OnDrawImGui();
-
-    ImGui::Separator();
-    ImGui::Text("Animation Clips Manager");
-
-    std::string currentClipName = m_pCurrentClip ? std::string(m_pCurrentClip->name.begin(), m_pCurrentClip->name.end()) : "None";
-    ImGui::Text("Active Clip : %s", currentClipName.c_str());
-
-    if (ImGui::BeginCombo("Select Clip to Play", currentClipName.c_str()))
-    {
-        for (const auto& pair : m_MapClips)
-        {
-            // wstring인 클립의 키값을 ImGui 출력을 위해 string으로 변환
-            std::string clipNameStr(pair.first.begin(), pair.first.end());
-
-            bool isSelected = (m_pCurrentClip && m_pCurrentClip->name == pair.first);
-            if (ImGui::Selectable(clipNameStr.c_str(), isSelected))
-            {
-                // 에디터에서 특정 클립을 클릭하면 즉시 해당 애니메이션 실행 테스트
-                Play(pair.first);
-            }
-
-            if (isSelected)
-            {
-                ImGui::SetItemDefaultFocus();
-            }
-        }
-        ImGui::EndCombo();
-    }
-
-    // 애니메이션 강제 정지 버튼
-    if (m_bIsPlaying)
-    {
-        if (ImGui::Button("Force Stop Animation", ImVec2(-1, 25)))
-        {
-            Stop();
-        }
-    }
-}
-
 void AnimatorComponent::Awake()
 {
 	m_pRenderComp = gameObject.GetComponent<RenderComponent>();
@@ -149,11 +107,11 @@ void AnimatorComponent::Stop()
     m_bIsPlaying = false;
 }
 
-void AnimatorComponent::Serialize(nlohmann::json& outJson) const
+void AnimatorComponent::Serialize(json& outJson) const
 {
     ScriptComponent::Serialize(outJson);
 
-    nlohmann::json clipKeysArray = nlohmann::json::array();
+    json clipKeysArray = json::array();
 
     for (const auto& pair : m_MapClips)
     {
@@ -173,7 +131,7 @@ void AnimatorComponent::Serialize(nlohmann::json& outJson) const
     }
 }
 
-void AnimatorComponent::Deserialize(const nlohmann::json& inJson)
+void AnimatorComponent::Deserialize(const json& inJson)
 {
     ScriptComponent::Deserialize(inJson);
 

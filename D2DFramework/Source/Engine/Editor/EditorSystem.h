@@ -8,6 +8,7 @@ class MainMenuBarPanel;
 class HierarchyPanel;
 class InspectorPanel;
 class ContentBrowserPanel;
+class ViewportPanel;
 
 class EditorSystem : public Singleton<EditorSystem>, public ISystem, public IUpdatable
 {
@@ -19,6 +20,7 @@ public:
 
 	void SetSelectedObject(GameObject* pObj) { m_pSelectedObject = pObj; }
 	GameObject* GetSelectedObject() const { return m_pSelectedObject; }
+	ViewportPanel* GetViewportPanel() const { return m_pViewportPanel.get(); }
 
 private:
 	EditorSystem();
@@ -26,9 +28,10 @@ private:
 
 private:
 	GameObject* m_pSelectedObject = nullptr;
-	// ºĞ¸®µÈ ÆĞ³Î ¸ğµâ ÀÎ½ºÅÏ½º ¼ÒÀ¯
+	// ë¶„ë¦¬ëœ íŒ¨ë„ ëª¨ë“ˆ ì¸ìŠ¤í„´ìŠ¤ ì†Œìœ 
 	std::unique_ptr<MainMenuBarPanel> m_pMainMenuBarPanel;
 	std::unique_ptr<HierarchyPanel> m_pHierarchyPanel;
 	std::unique_ptr<InspectorPanel> m_pInspectorPanel;
 	std::unique_ptr<ContentBrowserPanel> m_pContentBrowserPanel;
+	std::unique_ptr<ViewportPanel> m_pViewportPanel;
 };

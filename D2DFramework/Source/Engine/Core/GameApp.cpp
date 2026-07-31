@@ -52,7 +52,7 @@ bool GameApp::Initialize(HINSTANCE hInstance, int nCmdShow, DisplayMode mode)
 	int screenWidth = GetSystemMetrics(SM_CXSCREEN);
 	int screenHeight = GetSystemMetrics(SM_CYSCREEN);
 
-	DWORD windowStyle = WS_OVERLAPPEDWINDOW | WS_VISIBLE; // 기본 윈도우 스타일
+	DWORD windowStyle = WS_OVERLAPPEDWINDOW | WS_VISIBLE | WS_MAXIMIZE; // 기본 윈도우 스타일
 	int width = GWinSizeX;
 	int height = GWinSizeY;
 
@@ -104,7 +104,7 @@ bool GameApp::Initialize(HINSTANCE hInstance, int nCmdShow, DisplayMode mode)
 
 	SceneManager::GetInstance()->LoadSceneFromFile(EngineKey::FilePath::DefaultScene.data());
 
-	ShowWindow(m_hWnd, nCmdShow);
+	ShowWindow(m_hWnd, SW_MAXIMIZE);
 	UpdateWindow(m_hWnd);
 
 	return true;
@@ -174,9 +174,11 @@ void GameApp::RegisterManagers()
 	// 렌더링
 	kernel->RegisterManager(GraphicManager::GetInstance());
 	kernel->RegisterManager(RenderSystem::GetInstance());
-	kernel->RegisterManager(GUISystem::GetInstance());
 	kernel->RegisterManager(DebugManager::GetInstance());
+#if WITH_EDITOR
+	kernel->RegisterManager(GUISystem::GetInstance());
 	kernel->RegisterManager(EditorSystem::GetInstance());
+#endif
 }
 
 LRESULT CALLBACK GameApp::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
