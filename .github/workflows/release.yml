@@ -22,11 +22,11 @@ jobs:
     - name: Setup NuGet
       uses: nuget/setup-nuget@v2
 
-    - name: Restore NuGet Packages
-      run: nuget restore D2DFramework.sln
-
     - name: Run vcpkg
       uses: lukka/run-vcpkg@v11
+
+    - name: Restore NuGet Packages
+      run: nuget restore D2DFramework.sln
 
     - name: Build Release Version
       run: |
@@ -43,17 +43,17 @@ jobs:
             Copy-Item "x64\Release\D2DFramework.exe" -Destination $Staging
         }
         Copy-Item "x64\Release\*.dll" -Destination $Staging -ErrorAction SilentlyContinue
-        if (Test-Path "D2DFramework\imgui.ini") {
-            Copy-Item "D2DFramework\imgui.ini" -Destination $Staging
-        }
 
         if (Test-Path "D2DFramework\imgui.ini") {
             Copy-Item "D2DFramework\imgui.ini" -Destination $Staging
         }
         
-        # 2. Include Resources if present
+        # 2. Include Resources and Source if present
         if (Test-Path "D2DFramework\Resources") {
             Copy-Item -Recurse "D2DFramework\Resources" -Destination "$Staging\Resources"
+        }
+        if (Test-Path "D2DFramework\Source") {
+            Copy-Item -Recurse "D2DFramework\Source" -Destination "$Staging\Source"
         }
         
         # 3. Create Zip file
