@@ -1,6 +1,7 @@
 {
   "name": "d2dframework",
   "version-string": "1.0.0",
+  "builtin-baseline": "c35a8286a51d9cf1639d675661b0c007137f225c",
   "dependencies": [
     {
       "name": "box2d",

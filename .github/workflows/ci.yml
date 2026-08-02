@@ -38,6 +38,8 @@ jobs:
 
     - name: Run vcpkg
       uses: lukka/run-vcpkg@v11
+      with:
+        vcpkgGitCommitId: 'c35a8286a51d9cf1639d675661b0c007137f225c'
 
     - name: Restore NuGet Packages
       run: nuget restore D2DFramework.sln
