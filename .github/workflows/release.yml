@@ -22,10 +22,8 @@ jobs:
     - name: Setup NuGet
       uses: nuget/setup-nuget@v2
 
-    - name: Run vcpkg
-      uses: lukka/run-vcpkg@v11
-      with:
-        vcpkgGitCommitId: 'c35a8286a51d9cf1639d675661b0c007137f225c'
+    - name: Install vcpkg Dependencies
+      run: vcpkg install --triplet x64-windows
 
     - name: Restore NuGet Packages
       run: nuget restore D2DFramework.sln
