@@ -55,4 +55,4 @@ jobs:
 
     - name: Build Solution
       run: |
-        msbuild D2DFramework.sln /p:Configuration=${{ matrix.configuration }} /p:Platform=x64 /p:ForceImportBeforeCppTargets="C:/vcpkg/scripts/buildsystems/msbuild/vcpkg.targets" /m /verbosity:minimal
+        msbuild D2DFramework.sln /p:Configuration=${{ matrix.configuration }} /p:Platform=x64 /p:VcpkgEnableManifest=true /m /verbosity:minimal

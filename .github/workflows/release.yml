@@ -41,7 +41,7 @@ jobs:
 
     - name: Build Release Version
       run: |
-        msbuild D2DFramework.sln /p:Configuration=Release /p:Platform=x64 /p:ForceImportBeforeCppTargets="C:/vcpkg/scripts/buildsystems/msbuild/vcpkg.targets" /m /verbosity:minimal
+        msbuild D2DFramework.sln /p:Configuration=Release /p:Platform=x64 /p:VcpkgEnableManifest=true /m /verbosity:minimal
 
     - name: Prepare Release Package
       shell: powershell
